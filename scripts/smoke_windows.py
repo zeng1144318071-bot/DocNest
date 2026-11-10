@@ -74,6 +74,9 @@ def start_app(label):
     main.evaluate(f"globalThis.__pvElectron = process.getBuiltinModule('module').createRequire({package})('electron'); true")
     renderer = CDP(renderer_port, 'page')
     renderer.wait("document.body?.dataset.appReady === 'true'", 25)
+    # Hosted Windows runners may disable animations at OS level. Exercise the
+    # normal and reduced-motion paths explicitly rather than inheriting the OS.
+    renderer.call('Emulation.setEmulatedMedia', {'features': [{'name': 'prefers-reduced-motion', 'value': 'no-preference'}]})
     main.evaluate("globalThis.__pvElectron.BrowserWindow.getAllWindows()[0].webContents.setBackgroundThrottling(false); true")
     return process, main, renderer, log
 
@@ -322,7 +325,7 @@ try:
     click(renderer, 'pv-toast-close')
     assert renderer.evaluate("document.getElementById('pv-toast').hidden")
     assert renderer.evaluate("document.activeElement.id") == 'pv-copy'
-    renderer.call('Emulation.setEmulatedMedia', {'features': []})
+    renderer.call('Emulation.setEmulatedMedia', {'features': [{'name': 'prefers-reduced-motion', 'value': 'no-preference'}]})
     # A replacement toast must survive the completion of the previous exit animation.
     click(renderer, 'pv-copy')
     click(renderer, 'pv-toast-close')

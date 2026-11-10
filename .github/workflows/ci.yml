@@ -18,6 +18,10 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
+      - name: Locate isolated test diagnostics
+        run: |
+          $diagnostics = [IO.Path]::GetFullPath((Join-Path $env:GITHUB_WORKSPACE '../vault-build-check'))
+          "PV_TEST_ARTIFACTS=$diagnostics" >> $env:GITHUB_ENV
       - run: npm ci
       - run: npm test
       - run: npm audit --omit=dev
@@ -30,5 +34,5 @@ jobs:
         if: failure()
         with:
           name: windows-test-diagnostics
-          path: ../vault-build-check/
+          path: ${{ env.PV_TEST_ARTIFACTS }}
           retention-days: 7
