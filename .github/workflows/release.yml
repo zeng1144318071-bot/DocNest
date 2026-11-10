@@ -67,12 +67,15 @@ jobs:
           CSC_IDENTITY_AUTO_DISCOVERY: 'false'
       - name: Generate SHA256 checksums
         run: |
-          $lines = Get-ChildItem release -File | Where-Object { $_.Extension -in '.exe', '.yml', '.blockmap' } | ForEach-Object { (Get-FileHash -LiteralPath $_.FullName -Algorithm SHA256).Hash.ToLowerInvariant() + '  ' + $_.Name }
+          $version = (Get-Content package.json -Raw | ConvertFrom-Json).version
+          $assetNames = @("ProjectVault-Setup-$version-x64.exe", "ProjectVault-Setup-$version-x64.exe.blockmap", 'latest.yml', "ProjectVault-Examples-$version.zip", 'project-vault-example.json')
+          $lines = $assetNames | ForEach-Object { (Get-FileHash -LiteralPath (Join-Path 'release' $_) -Algorithm SHA256).Hash.ToLowerInvariant() + '  ' + $_ }
           [IO.File]::WriteAllLines((Join-Path $PWD 'release/SHA256SUMS.txt'), $lines, [Text.UTF8Encoding]::new($false))
       - name: Publish installer and update feed
         shell: pwsh
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          $assets = @(Get-ChildItem release -File | Where-Object { $_.Name -match '\.(exe|blockmap)$' -or $_.Name -in 'latest.yml', 'SHA256SUMS.txt' } | ForEach-Object { $_.FullName })
+          $version = (Get-Content package.json -Raw | ConvertFrom-Json).version
+          $assets = @("ProjectVault-Setup-$version-x64.exe", "ProjectVault-Setup-$version-x64.exe.blockmap", 'latest.yml', "ProjectVault-Examples-$version.zip", 'project-vault-example.json', 'SHA256SUMS.txt') | ForEach-Object { Join-Path $PWD "release/$_" }
           gh release create $env:RELEASE_TAG @assets --verify-tag --title "项目资料库 $env:RELEASE_TAG" --generate-notes

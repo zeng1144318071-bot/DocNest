@@ -8,7 +8,7 @@
 
 项目资料库支持 **TXT、ENV、JSON、Markdown** 四种格式的导入、预览、编辑与转换，按项目集中查看，并使用 Windows 当前账户的 DPAPI 加密保存。应用每 5 分钟检查 GitHub 新版本，安装包下载完成后提示安装。
 
-**[下载 Windows 安装包](https://github.com/zeng1144318071-bot/project-vault-desktop/releases/latest) · [版本记录](CHANGELOG.md) · [参与开发](CONTRIBUTING.md)**
+**[下载 Windows 安装包](https://github.com/zeng1144318071-bot/project-vault-desktop/releases/latest) · [标准示例](examples/README.md) · [版本记录](CHANGELOG.md) · [参与开发](CONTRIBUTING.md)**
 
 ![项目资料库：项目与 Markdown 预览，全部为虚构演示资料](docs/images/overview.png)
 
@@ -32,12 +32,14 @@
 
 适用于 **Windows 10 / 11 x64**。从 [Releases](https://github.com/zeng1144318071-bot/project-vault-desktop/releases/latest) 下载 `ProjectVault-Setup-版本号-x64.exe`，运行后选择安装目录。程序自带运行环境，无需安装 Node.js。安装程序创建桌面和开始菜单快捷方式；旧版可直接覆盖升级，卸载时保留用户资料。
 
-首次启动包含两个虚构演示项目，示例域名和 IP 仅用于演示。可以删除示例后创建自己的项目。按钮悬停或键盘聚焦时会显示名称。
+首次启动显示一个“标准示例项目”，包含 TXT、ENV、JSON、MD 四份完整资料。示例使用虚构账号、`example.com` 域名和文档专用 IP，可自由修改或删除。已有资料升级后保留原样，可点击左侧“项目”标题旁的书本图标导入独立示例；内容完整的示例已存在时直接打开，已修改的示例保留并另建带编号的项目。按钮悬停或键盘聚焦时会显示名称。
 
 1. 在左侧选择或新建项目，点击右上角导入图标，选择文件或直接粘贴内容。
 2. 预览识别结果并保存。本地文件保留原名，粘贴内容自动命名。支持 `.env` 和 `.env.production` 等文件；必要时在文件对话框选择“所有文件”。单个导入文件上限为 10 MB。
 3. 点击左侧资料查看，点击“项目完整预览”连续浏览整个项目。双击文件名或按 F2 可重命名，编辑图标可修改正文。
 4. 导出时选择当前文件或整个项目，再选 TXT / ENV / JSON / MD，查看结果后保存到本机。
+
+标准示例也单独提供 [项目 JSON](examples/project-vault-example.json) 和 Release 中的 `ProjectVault-Examples-版本号.zip`。项目 JSON 可一次恢复四份原始资料；ZIP 内含四份原始文件、项目 JSON 和说明，方便测试单文件导入。详细内容见 [示例说明](examples/README.md)。
 
 | 快捷键 | 操作 |
 | --- | --- |
@@ -108,13 +110,13 @@ npm run test:windows
 npm run dist
 ```
 
-构建产物位于 `release/`。`npm test` 不访问网络或启动安装程序；窗口测试仅使用独立临时目录、虚构数据和模拟剪贴板，不读取现有资料库。自动化测试入口在正式环境中不启用。
+构建产物位于 `release/`，同时生成标准示例 ZIP 和可重新导入的 `project-vault-example.json`。`npm test` 不访问网络或启动安装程序；窗口测试仅使用独立临时目录、虚构数据和模拟剪贴板，不读取现有资料库。自动化测试入口在正式环境中不启用。
 
 ## 发布与贡献
 
 欢迎通过 Issue 提交问题或建议，提交截图前请隐藏私密内容。开发约定与发布步骤见 [CONTRIBUTING.md](CONTRIBUTING.md)，漏洞反馈见 [SECURITY.md](SECURITY.md)。
 
-GitHub Actions 为每个主分支提交和 Pull Request 执行 Windows 检查。维护者推送与 `package.json` 版本一致的 `v*` 标签后，发布流程会测试并生成安装包、更新描述文件、差分元数据及 SHA256 校验文件，发布到 GitHub Releases。
+GitHub Actions 为每个主分支提交和 Pull Request 执行 Windows 检查。维护者推送与 `package.json` 版本一致的 `v*` 标签后，发布流程会测试并生成安装包、更新描述文件、差分元数据、标准示例资料包及 SHA256 校验文件，发布到 GitHub Releases。
 
 ## 许可证
 

@@ -1,6 +1,6 @@
 {
   "name": "project-vault-preview",
-  "version": "0.2.0",
+  "version": "1.0.0",
   "description": "本地项目资料库：TXT / ENV / JSON / Markdown 导入、预览、转换与加密保存",
   "productName": "项目资料库",
   "author": {

@@ -2,6 +2,7 @@ import MarkdownIt from 'markdown-it';
 import DOMPurify from 'dompurify';
 import { createIcons, icons } from 'lucide';
 import { createControls } from './controls.js';
+import { EXAMPLE_PROJECT_ID, createExampleStore, planExampleImport } from '../examples/catalog.cjs';
 import { createUpdateControls } from './updates.js';
 import { detectContentFormat, formatFromFilename, maskEnv, splitEnvSections } from './formats.js';
 globalThis.lucide = { createIcons: options => createIcons({ ...options, icons }) };
@@ -9,23 +10,15 @@ globalThis.lucide = { createIcons: options => createIcons({ ...options, icons })
   const root = document.getElementById('project-vault-preview');
   const byId = id => root.querySelector('#' + id);
   const formats = { text: { label: 'TXT 文档', short: 'TXT', ext: '.txt', icon: 'file-text' }, env: { label: 'ENV 配置', short: 'ENV', ext: '.env', icon: 'sliders-horizontal' }, json: { label: 'JSON 源码', short: 'JSON', ext: '.json', icon: 'braces' }, markdown: { label: 'Markdown 文档', short: 'MD', ext: '.md', icon: 'pilcrow' } };
-  const projects = { star: '开发项目 · 示例', shop: '商城 · 示例' };
-  const guide = '# 运行与配置说明\n\n## 命令行触发\n\n通过命令行触发任务：\n\n```bash\nphp think schedule:roll\n```\n\n## HTTP 触发\n\n项目也支持通过 HTTP 触发：\n\n```http\nPOST /api/task/roll_course_schedule\nX-Task-Token: demo_task_token\n```\n\n接口位于 `Task.php`，任务密钥从 `.env` 读取：\n\n```ini\n[schedule]\ntoken = demo_task_token\n```\n\n- **环境**：测试环境\n- 修改配置后重新加载服务。';
-  const records = [
-    { id: 'guide', project: 'star', name: '运行与配置说明.md', format: 'markdown', note: '任务命令、接口与配置说明', source: guide },
-    { id: 'accounts', project: 'star', name: '账号与服务器.txt', format: 'text', note: '云平台与服务器资料', source: '开发项目 · 演示资料\n\n云平台账号\n账号：demo@example.com\n登录方式：账号密码\n密码：Demo-Cloud-4821\n\n主服务器\nIP：192.0.2.10\n面板：https://panel.example.com\n账号：demo_admin\n密码：Demo-Server-2058\n\n队列服务器\nIP：192.0.2.20\n账号：queue_demo\n密码：Demo-Queue-9042\n\n备注：仅用于界面演示。' },
-    { id: 'environment', project: 'star', name: '.env.production', format: 'env', note: '应用与数据库配置', source: '# 应用配置\nAPP_NAME="star-demo"\nAPP_ENV=production\nAPP_DEBUG=false\n\n# 数据库配置\nDB_HOST=mysql.example.com\nDB_PORT=3306\nDB_USER=demo_user\nDB_PASSWORD="Demo-Database-2058"\n\nCACHE_PREFIX=${APP_ENV}_demo\nEMPTY_VALUE=' },
-    { id: 'settings', project: 'star', name: '应用配置.json', format: 'json', note: '嵌套配置与对象存储', source: JSON.stringify({ service: 'star-demo', enabled: true, server: { host: '192.0.2.10', port: 443 }, storage: { bucket: 'assets-demo', region: 'ap-guangzhou', url: 'https://assets.example.com', access_key: 'DEMO_KEY_NOT_VALID' }, features: ['queue', 'cache'], retry: 3 }, null, 2) },
-    { id: 'shop-env', project: 'shop', name: '.env.test', format: 'env', note: '商城测试环境', source: '# 商城测试环境\nAPP_ENV=testing\nAPP_URL=https://shop.example.com\nDB_HOST=198.51.100.10\nDB_USER=shop_demo\nDB_PASSWORD="Demo-Shop-9042"' }
-  ];
-  const demoRecords = records.map(record => ({ ...record }));
+  const { projects, records } = createExampleStore();
+  const demoRecords = createExampleStore().records;
   const api = window.vaultApp;
   let storageReady = false;
   let editingId = null;
   let saving = false;
   let deleting = false;
   let renaming = false;
-  let project = 'star';
+  let project = EXAMPLE_PROJECT_ID;
   let selected = 'guide';
   let route = 'library';
   let sourceView = false;
@@ -178,6 +171,7 @@ globalThis.lucide = { createIcons: options => createIcons({ ...options, icons })
     byId('pv-project').value = project || '';
     byId('pv-project').disabled = !hasProject;
     byId('pv-project-delete').disabled = !hasProject || !storageReady || saving;
+    byId('pv-project-example').disabled = !storageReady || saving;
     byId('pv-overview').disabled = !hasProject;
     byId('pv-search').disabled = !hasProject;
     const all = projectRecords(); const query = byId('pv-search').value.trim().toLocaleLowerCase();
@@ -507,6 +501,19 @@ globalThis.lucide = { createIcons: options => createIcons({ ...options, icons })
   });
   byId('pv-project-delete').addEventListener('click', deleteProject);
   byId('pv-project-new').addEventListener('click', openProjectForm);
+  byId('pv-project-example').addEventListener('click', async () => {
+    if (!storageReady || saving || deleting || renaming || root.querySelector('dialog[open]')) return;
+    if (route === 'import' || !byId('pv-project-create').hidden) { ui.toast('请先完成当前编辑', '保存或退出编辑后，再导入示例项目。', 'error'); return; }
+    const plan = planExampleImport({ projects, records }, () => crypto.randomUUID());
+    if (plan.existingProjectId) {
+      project = plan.existingProjectId; byId('pv-search').value = ''; selectRecord(null);
+      ui.toast('已打开标准示例', '包含 TXT、ENV、JSON、MD 四份虚构资料。'); return;
+    }
+    if (await commitMutation(() => { Object.assign(projects, plan.snapshot.projects); records.push(...plan.snapshot.records); })) {
+      project = plan.projectId; byId('pv-search').value = ''; selectRecord(null);
+      ui.toast('标准示例已导入', '已创建独立项目，可以自由编辑或删除。');
+    }
+  });
   byId('pv-project-create-cancel').addEventListener('click', () => { byId('pv-project-create').hidden = true; });
   byId('pv-project-create-save').addEventListener('click', async () => {
     const name = byId('pv-project-name').value.trim(); if (!name) { feedback('请输入项目名称'); return; }

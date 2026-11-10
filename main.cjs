@@ -92,7 +92,7 @@ app.whenReady().then(async () => {
     if (result.canceled || !result.filePaths.length) return null;
     const target = result.filePaths[0];
     const info = await fs.stat(target);
-    if (info.size > 10 * 1024 * 1024) throw new Error('此预览版支持导入 10 MB 以内的文本文件。');
+    if (info.size > 10 * 1024 * 1024) throw new Error('支持导入 10 MB 以内的文本文件。');
     const data = await fs.readFile(target);
     const decoder = new TextDecoder('utf-8', { fatal: true });
     let content;
@@ -144,7 +144,7 @@ app.whenReady().then(async () => {
   });
 
   Menu.setApplicationMenu(null);
-  mainWindow = new BrowserWindow({ title: '项目资料库 · 预览版', width: 1220, height: 900, minWidth: 760, minHeight: 600, show: false, backgroundColor: nativeTheme.shouldUseDarkColors ? '#181e27' : '#ffffff', icon: path.join(__dirname, 'dist-ui', 'icon.png'), webPreferences: { preload: path.join(__dirname, 'preload.cjs'), contextIsolation: true, nodeIntegration: false, sandbox: true, spellcheck: false, devTools: testMode || !app.isPackaged } });
+  mainWindow = new BrowserWindow({ title: '项目资料库', width: 1220, height: 900, minWidth: 760, minHeight: 600, show: false, backgroundColor: nativeTheme.shouldUseDarkColors ? '#181e27' : '#ffffff', icon: path.join(__dirname, 'dist-ui', 'icon.png'), webPreferences: { preload: path.join(__dirname, 'preload.cjs'), contextIsolation: true, nodeIntegration: false, sandbox: true, spellcheck: false, devTools: testMode || !app.isPackaged } });
   mainWindow.webContents.on('before-input-event', (event, input) => {
     if (input.type !== 'keyDown' || input.isComposing || input.alt) return;
     const key = input.key.toLowerCase();
@@ -167,7 +167,7 @@ app.whenReady().then(async () => {
   await mainWindow.loadFile(path.join(__dirname, 'dist-ui', 'index.html'));
   updates.start();
 }).catch(async () => {
-  if (!testMode) await dialog.showMessageBox({ type: 'error', title: '启动失败', message: '项目资料库启动失败，请重新安装预览版。' });
+  if (!testMode) await dialog.showMessageBox({ type: 'error', title: '启动失败', message: '项目资料库启动失败，请重新安装应用。' });
   app.exit(1);
 });
 app.on('before-quit', event => {

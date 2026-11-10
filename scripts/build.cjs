@@ -26,5 +26,6 @@ const { Resvg } = require('@resvg/resvg-js');
     for (const file of candidates) { if ((await fs.stat(path.join(directory, file))).isFile()) notices.push(await fs.readFile(path.join(directory, file), 'utf8')); }
   }
   await fs.writeFile(path.join(root, 'dist-ui', 'THIRD_PARTY_NOTICES.txt'), notices.join('\n\n'), 'utf8');
+  await require('./build-examples.cjs')(root);
   console.log('Built local UI and Windows application icon.');
 })().catch(error => { console.error(error.message); process.exitCode = 1; });

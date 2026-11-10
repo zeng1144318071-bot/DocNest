@@ -8,9 +8,11 @@ import subprocess
 import time
 import urllib.request
 import uuid
+import zipfile
 import websocket
 
 app_root = Path(__file__).resolve().parent.parent
+app_version = json.loads((app_root / 'package.json').read_text(encoding='utf-8'))['version']
 check_root = app_root.parent / 'vault-build-check' / uuid.uuid4().hex[:8]
 check_root.mkdir(parents=True)
 data_root = check_root / 'user-data'
@@ -20,6 +22,15 @@ executable = app_root / 'release' / 'win-unpacked' / '项目资料库.exe'
 assert executable.exists(), 'Build the Windows app first.'
 update_config = json.loads(subprocess.check_output(['node', '-e', "console.log(JSON.stringify(require('js-yaml').load(require('fs').readFileSync(process.argv[1],'utf8'))))", str(executable.parent / 'resources' / 'app-update.yml')], cwd=app_root, text=True, creationflags=subprocess.CREATE_NO_WINDOW))
 assert update_config == {'provider': 'github', 'owner': 'zeng1144318071-bot', 'repo': 'project-vault-desktop', 'updaterCacheDirName': 'project-vault-preview-updater'}
+standard = json.loads((app_root / 'examples/project-vault-example.json').read_text(encoding='utf-8'))
+assert (app_root / 'release/project-vault-example.json').read_bytes() == (app_root / 'examples/project-vault-example.json').read_bytes()
+with zipfile.ZipFile(app_root / 'release' / f'ProjectVault-Examples-{app_version}.zip') as example_zip:
+    assert example_zip.testzip() is None
+    members = {name for name in example_zip.namelist() if not name.endswith('/')}
+    assert members == {'examples/' + file['name'] for file in standard['files']} | {'examples/project-vault-example.json', 'examples/README.md'}
+    assert json.loads(example_zip.read('examples/project-vault-example.json')) == standard
+    for file in standard['files']:
+        assert example_zip.read('examples/' + file['name']).decode('utf-8') == file['content']
 
 def free_port():
     with socket.socket() as connection:
@@ -145,12 +156,27 @@ def capture(main, name):
 
 process, main, renderer, log = start_app('initial')
 try:
+    assert main.evaluate("globalThis.__pvElectron.app.getVersion()") == app_version
+    assert main.evaluate("globalThis.__pvElectron.BrowserWindow.getAllWindows()[0].getTitle()") == '项目资料库'
+    assert renderer.evaluate("document.getElementById('pv-project').options.length") == 1
+    assert renderer.evaluate("document.getElementById('pv-project').selectedOptions[0].textContent") == '标准示例项目'
+    click(renderer, 'pv-project-example')
+    assert renderer.evaluate("document.querySelectorAll('#pv-content .pv-overview-item').length") == 4
+    assert renderer.evaluate('window.vaultApp.load()')['store'] is None
+    select_record(renderer, 'guide')
+    if not renderer.evaluate("document.getElementById('pv-toast').hidden"):
+        click(renderer, 'pv-toast-close')
+    renderer.wait("document.getElementById('pv-toast').hidden")
     # Update UI uses synthetic states and a mocked installer. Test mode has no network.
     assert renderer.evaluate('window.vaultApp.updateState()')['status'] == 'disabled'
     capture(main, 'readme-overview.png')
+    select_record(renderer, 'environment')
+    assert renderer.evaluate("Array.from(document.querySelectorAll('#pv-content .pv-env-group')).map(node => node.dataset.envSection)") == ['', 'app', 'database', 'redis', 'storage']
+    capture(main, 'readme-env.png')
+    select_record(renderer, 'guide')
     main.evaluate("""(() => {
       const ipc = globalThis.__pvElectron.ipcMain;
-      globalThis.__pvUpdate = { status:'up-to-date', currentVersion:'0.2.0', latestVersion:null, percent:0, checkedAt:1, revision:1000, message:'' };
+      globalThis.__pvUpdate = { status:'up-to-date', currentVersion:'1.0.0', latestVersion:null, percent:0, checkedAt:1, revision:1000, message:'' };
       globalThis.__pvInstallCalls = 0;
       ipc.removeHandler('update:check');
       ipc.handle('update:check', () => ({ ...globalThis.__pvUpdate, revision: ++globalThis.__pvUpdate.revision }));
@@ -163,7 +189,7 @@ try:
     })()""")
     click(renderer, 'pv-check-update')
     renderer.wait("document.getElementById('pv-toast-title').textContent === '已是最新版本'")
-    main.evaluate("globalThis.__pvSendUpdate({status:'downloading', latestVersion:'0.3.0', percent:42}); true")
+    main.evaluate("globalThis.__pvSendUpdate({status:'downloading', latestVersion:'1.1.0', percent:42}); true")
     renderer.wait("!document.getElementById('pv-update-card').hidden && document.getElementById('pv-update-progress').value === 42")
     click(renderer, 'pv-update-dismiss')
     assert renderer.evaluate("document.getElementById('pv-update-card').hidden")
@@ -229,11 +255,18 @@ try:
     assert main.evaluate("globalThis.__pvElectron.safeStorage.isEncryptionAvailable()")
     assert renderer.evaluate("document.querySelectorAll('#pv-files svg').length") == 4
     assert renderer.evaluate("Array.from(document.querySelectorAll('select.pv-input')).every(select => select.hidden)")
+    # Create a second project as a test fixture; first-run data contains one standard example.
+    click(renderer, 'pv-project-new')
+    set_value(renderer, 'pv-project-name', '商城 · 测试', 'input')
+    click(renderer, 'pv-project-create-save')
+    renderer.wait("document.getElementById('pv-project').selectedOptions[0].textContent === '商城 · 测试'")
+    selector_test_project = renderer.evaluate("document.getElementById('pv-project').value")
+    set_value(renderer, 'pv-project', 'example')
     # Use the visible custom selector, including filtering, keyboard navigation and dismissal.
     click(renderer, 'pv-project-trigger')
     renderer.wait("document.getElementById('pv-project-popup').matches(':popover-open')")
     assert renderer.evaluate("document.querySelectorAll('#pv-project-listbox [role=option]').length") == 2
-    assert renderer.evaluate("document.querySelector('#pv-project-listbox [aria-selected=true]').dataset.value") == 'star'
+    assert renderer.evaluate("document.querySelector('#pv-project-listbox [aria-selected=true]').dataset.value") == 'example'
     capture(main, 'custom-project-selector.png')
     main.evaluate("globalThis.__pvPreviousTheme = globalThis.__pvElectron.nativeTheme.themeSource; globalThis.__pvElectron.nativeTheme.themeSource = 'dark'; true")
     capture(main, 'custom-project-selector-dark.png')
@@ -242,7 +275,7 @@ try:
     assert renderer.evaluate("document.querySelectorAll('#pv-project-listbox [role=option]').length") == 1
     press_key(renderer, 'ArrowDown', 'ArrowDown', 40)
     press_key(renderer, 'Enter', 'Enter', 13)
-    renderer.wait("document.getElementById('pv-project').value === 'shop'")
+    renderer.wait("document.getElementById('pv-project').value === " + json.dumps(selector_test_project))
     assert not renderer.evaluate("document.getElementById('pv-project-popup').matches(':popover-open')")
     assert renderer.evaluate("document.activeElement.id") == 'pv-project-trigger'
     click(renderer, 'pv-project-trigger')
@@ -252,7 +285,7 @@ try:
     press_key(renderer, 'Tab', 'Tab', 9)
     assert renderer.evaluate("document.activeElement.id") == 'pv-search'
     assert not renderer.evaluate("document.getElementById('pv-project-popup').matches(':popover-open')")
-    set_value(renderer, 'pv-project', 'star')
+    set_value(renderer, 'pv-project', 'example')
 
     # Actions display icons with accessible names and custom hover/keyboard hints.
     assert renderer.evaluate("document.getElementById('pv-status-summary').textContent.includes('TXT / ENV / JSON / MD')")
@@ -345,7 +378,7 @@ try:
     renderer.evaluate("navigator.clipboard.writeText = async value => {window.__pvCopiedValue = value;}; true")
     renderer.evaluate("document.querySelector('#pv-content .pv-code-copy').click(); true")
     renderer.wait("document.getElementById('pv-toast-title').textContent === '复制成功' && !document.getElementById('pv-toast').hidden")
-    assert renderer.evaluate("window.__pvCopiedValue") == 'php think schedule:roll'
+    assert renderer.evaluate("window.__pvCopiedValue") == 'npm ci\nnpm run dev'
     click(renderer, 'pv-toast-close')
     for record_id, format_name in [('accounts', 'TXT'), ('environment', 'ENV'), ('settings', 'JSON'), ('guide', 'MD')]:
         renderer.evaluate(f"document.querySelector('[data-record={record_id}]').click(); true")
@@ -720,6 +753,60 @@ try:
     assert renderer.evaluate("document.querySelectorAll('#pv-content .pv-env-group').length") == 1
     renderer.evaluate('new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(() => resolve(true))))')
     capture(main, 'delete-controls.png')
+    before_example = renderer.evaluate('window.vaultApp.load()')['store']
+    click(renderer, 'pv-import-open')
+    set_value(renderer, 'pv-import-editor', 'Unsaved example import draft', 'input')
+    click(renderer, 'pv-project-example')
+    assert renderer.evaluate("document.getElementById('pv-import-editor').value") == 'Unsaved example import draft'
+    assert renderer.evaluate('window.vaultApp.load()')['store'] == before_example
+    click(renderer, 'pv-import-back')
+    click(renderer, 'pv-project-example')
+    renderer.wait("document.getElementById('pv-project').selectedOptions[0].textContent === '标准示例项目'")
+    example_project = renderer.evaluate("document.getElementById('pv-project').value")
+    with_example = renderer.evaluate('window.vaultApp.load()')['store']
+    assert len(with_example['records']) == len(before_example['records']) + 4
+    assert [record for record in with_example['records'] if record['project'] != example_project] == before_example['records']
+    assert all(with_example['projects'][key] == value for key, value in before_example['projects'].items())
+    example_records = [record for record in with_example['records'] if record['project'] == example_project]
+    assert [{'name': record['name'], 'format': record['format'], 'content': record['source']} for record in example_records] == standard['files']
+    encrypted_before_duplicate = (data_root / 'vault.dat').read_bytes()
+    click(renderer, 'pv-project-example')
+    assert renderer.evaluate('window.vaultApp.load()')['store'] == with_example
+    assert (data_root / 'vault.dat').read_bytes() == encrypted_before_duplicate
+    select_record(renderer, example_records[0]['id'])
+    click(renderer, 'pv-edit')
+    set_value(renderer, 'pv-import-editor', example_records[0]['source'] + '\n个人修改应保留', 'input')
+    click(renderer, 'pv-import-add')
+    renderer.wait("!document.getElementById('pv-library').hidden")
+    edited_example = renderer.evaluate('window.vaultApp.load()')['store']
+    click(renderer, 'pv-project-example')
+    renderer.wait("document.getElementById('pv-project').selectedOptions[0].textContent === '标准示例项目 (2)'")
+    final_example = renderer.evaluate('window.vaultApp.load()')['store']
+    assert final_example['records'][:len(edited_example['records'])] == edited_example['records']
+    assert len(final_example['records']) == len(edited_example['records']) + 4
+    # The separately distributed project JSON must follow the actual native-file import path.
+    click(renderer, 'pv-project-new')
+    set_value(renderer, 'pv-project-name', '示例资料包导入验证', 'input')
+    click(renderer, 'pv-project-create-save')
+    renderer.wait("document.getElementById('pv-project').selectedOptions[0].textContent === '示例资料包导入验证'")
+    bundle_project = renderer.evaluate("document.getElementById('pv-project').value")
+    main.evaluate("globalThis.__pvElectron.dialog.showOpenDialog = async () => ({ canceled:false, filePaths:[" + json.dumps(str(app_root / 'release/project-vault-example.json')) + '] }); true')
+    click(renderer, 'pv-import-open')
+    click(renderer, 'pv-choose-file')
+    renderer.wait("document.getElementById('pv-chosen-file').textContent === 'project-vault-example.json'")
+    assert renderer.evaluate("!document.getElementById('pv-import-bundle-label').hidden && document.getElementById('pv-import-bundle').checked")
+    click(renderer, 'pv-import-add')
+    renderer.wait("!document.getElementById('pv-library').hidden && document.getElementById('pv-save-status').textContent === '已加密保存'")
+    bundled_store = renderer.evaluate('window.vaultApp.load()')['store']
+    bundled_files = [record for record in bundled_store['records'] if record['project'] == bundle_project]
+    assert [{'name': record['name'], 'format': record['format'], 'content': record['source']} for record in bundled_files] == standard['files']
+    assert bundled_store['records'][:len(final_example['records'])] == final_example['records']
+finally:
+    stop_app(process, main, renderer, log)
+
+process, main, renderer, log = start_app('example-restart')
+try:
+    assert renderer.evaluate('window.vaultApp.load()')['store'] == bundled_store
 finally:
     stop_app(process, main, renderer, log)
 
@@ -730,5 +817,7 @@ summary['checks'] += ['toast countdown shows 3, 2, 1 and dismisses in three seco
 summary['checks'] += ['ENV complete source on the left and separate INI sections on the right', 'ENV section headings and inline comments remain inside highlighted code', 'ENV columns stack in narrow import previews and small windows without horizontal overflow', 'complete ENV block copies masked or exact revealed source', 'toast fades before hiding and a new toast cancels any pending exit']
 summary['checks'] += ['native menu removed and Alt does not reveal it', 'Ctrl+O and Ctrl+Shift+S open import and export without a menu', 'Ctrl+A selects editor text and zoom/reset shortcuts remain available']
 summary['checks'] += ['updates disabled in isolated test mode', 'manual check result', 'update download progress and dismissal', 'ready notification reappears when download finishes', 'install requires custom confirmation and safe cancel/Escape', 'unsaved drafts block update installation', 'dismissed update reopens from footer', 'installer IPC only after confirmation', 'installation failure restores usable UI']
+summary['checks'] += ['official 1.0.0 title and single standard first-run project', 'standard example opens without duplicate writes', 'example import preserves existing projects and documents', 'unsaved drafts block example import', 'standard bundle imports all four exact files', 'repeated example import preserves encrypted bytes', 'modified examples remain intact when a fresh numbered example is imported']
+summary['checks'] += ['published example ZIP restores every exact original file', 'standalone standard JSON native-file import preserves filenames, formats and content', 'existing and imported example data remain unchanged on restart']
 (check_root / 'results.json').write_text(json.dumps(summary, ensure_ascii=False, indent=2), encoding='utf-8')
 print(json.dumps(summary, ensure_ascii=False, indent=2))

@@ -17,9 +17,9 @@
 
 1. 更新 `package.json`、`package-lock.json`、界面版本号和 `CHANGELOG.md`。
 2. 完成测试与代码审查，合并到 `main`。确认构建中不含个人数据或有效密钥。
-3. 创建并推送与版本一致的标签，例如 `git tag v0.3.0`，再执行 `git push origin v0.3.0`。
+3. 创建并推送与版本一致的标签，例如 `git tag v1.0.0`，再执行 `git push origin v1.0.0`。
 4. `Windows release` 工作流在 Windows 上打包并运行窗口测试，再将同一程序目录制作成 NSIS 安装包。
-5. 检查 Release 包含 `ProjectVault-Setup-版本-x64.exe`、对应 `.exe.blockmap`、`latest.yml` 和 `SHA256SUMS.txt`，保持正式 Release，不能设为草稿或预发布。
+5. 检查 Release 包含 `ProjectVault-Setup-版本-x64.exe`、对应 `.exe.blockmap`、`latest.yml`、`ProjectVault-Examples-版本.zip`、`project-vault-example.json` 和 `SHA256SUMS.txt`，保持正式 Release，不能设为草稿或预发布。示例唯一来源为 `examples/project-vault-example.json`，修改后同时检查首次启动、示例图标和资料包导入。
 6. 旧版本更新器从最新稳定 Release 读取元数据。发布后验证下载链接和版本描述，不覆盖已经发布的版本文件；修复应递增版本号。
 
 首次发布可使用相同流程在本地构建、验证后上传全部产物。安装包目前未签名；如后续启用代码签名，应同时配置 CI 证书、发布者校验与文档。

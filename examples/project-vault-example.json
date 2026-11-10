@@ -1,0 +1,27 @@
+{
+  "kind": "project-vault",
+  "version": 1,
+  "project": "标准示例项目",
+  "files": [
+    {
+      "name": "运行与配置说明.md",
+      "format": "markdown",
+      "content": "# 运行与配置说明\n\n欢迎使用项目资料库。本示例以虚构的「云端笔记」项目展示资料整理方式，所有账号、地址与密钥均为演示内容。\n\n## 从这里开始\n\n1. 在左侧选择 TXT、ENV、JSON、MD 文件，查看不同预览效果。\n2. 点击「项目完整预览」连续浏览四份资料。\n3. 双击文件名可重命名，编辑图标可修改正文。\n4. 点击导出图标，选择当前资料或整个项目，再切换目标格式。\n\n> 常见密码和密钥默认隐藏，可点击眼睛图标查看演示原文。示例项目可删除；需要时点击项目标题旁的书本图标重新导入。\n\n## 项目资料目录\n\n| 文件 | 用途 |\n| --- | --- |\n| 账号与服务器.txt | 自由文本、虚构账号、服务器与链接 |\n| .env.example | 全局配置和应用、数据库、缓存、存储分组 |\n| 应用配置.json | 嵌套对象、数组和不同数据类型 |\n| 运行与配置说明.md | 操作指南与 Markdown 排版示例 |\n\n## 本地开发命令\n\n以下为虚构项目的命令格式示例：\n\n```bash\nnpm ci\nnpm run dev\n```\n\n## HTTP 接口示例\n\n```http\nGET https://app.example.com/api/health\nX-Access-Token: EXAMPLE_ONLY_INVALID\n```\n\n## ENV 分组示例\n\n```ini\n[app]\nAPP_NAME=cloud-notes-demo\nAPP_ENV=development\n```\n\nENV 预览左侧显示全部内容，右侧按方括号段名分组；分组不改变原始文件。普通 dotenv 加载器可能不支持此扩展写法。\n\n## 分享与迁移\n\n- 导出整个项目为 JSON，可将四份资料重新导入到其他项目。\n- 导出默认隐藏常见敏感字段；保留完整演示原文时，勾选「包含敏感字段」。\n- 正式资料保存在本机并使用当前 Windows 账户加密。迁移前在原账户导出，避免仅复制加密文件。\n- 使用 [example.com](https://example.com) 演示网页链接，点击后由默认浏览器打开。\n"
+    },
+    {
+      "name": "账号与服务器.txt",
+      "format": "text",
+      "content": "云端笔记 · 标准示例资料\n\n【说明】以下资料全部虚构，仅用于学习和展示，不能用于登录或连接服务。\n\n项目基本信息\n项目名称：云端笔记\n项目标识：cloud-notes-demo\n运行环境：开发环境\n负责人：示例维护者\n联系邮箱：maintainer@example.com\n\n云平台账号\n登录地址：https://console.example.com\n账号：demo@example.com\n密码：EXAMPLE_ONLY_INVALID\n登录方式：演示账号密码\n\n应用服务器\nIP：192.0.2.10\nSSH 端口：22\n账号：demo_user\n密码：EXAMPLE_ONLY_INVALID\n管理面板：https://panel.example.com\n\n队列服务器\nIP：192.0.2.20\n账号：queue_demo\n密码：EXAMPLE_ONLY_INVALID\n用途：异步任务与邮件通知\n\n常用链接\n应用首页：https://app.example.com\n接口文档：https://docs.example.com/api\n静态资源：https://assets.example.com\n\n维护记录\n2026-11-10：建立标准示例资料。\n  - 可复制当前显示的内容，复制成功提示在 3 秒后淡出。\n  - TXT 预览保留换行和缩进。\n  - 示例 IP 使用文档专用地址段，不代表真实服务器。\n"
+    },
+    {
+      "name": ".env.example",
+      "format": "env",
+      "content": "# 标准示例：所有地址和密钥均为虚构演示内容\n# 方括号为资料库的 ENV 分组扩展，接入 dotenv 前请按项目要求调整\nDEMO_ONLY=true\n\n[app]\nAPP_NAME=cloud-notes-demo\nAPP_ENV=development\nAPP_DEBUG=true\nAPP_URL=https://app.example.com\nAPP_PORT=8080\nAPP_TOKEN=EXAMPLE_ONLY_INVALID\n\n[database] # 数据库示例\nDB_HOST=db.example.com\nDB_PORT=3306\nDB_NAME=cloud_notes_demo\nDB_USER=demo_user\nDB_PASSWORD=EXAMPLE_ONLY_INVALID\nDB_CHARSET=utf8mb4\n\n[redis]\nREDIS_HOST=redis.example.com\nREDIS_PORT=6379\nREDIS_DATABASE=0\nREDIS_PASSWORD=EXAMPLE_ONLY_INVALID\nCACHE_PREFIX=${APP_ENV}_cloud_notes\n\n[storage]\nSTORAGE_PROVIDER=example\nSTORAGE_BUCKET=cloud-notes-demo\nSTORAGE_REGION=example-region\nSTORAGE_URL=https://assets.example.com\nSTORAGE_ACCESS_KEY=EXAMPLE_ONLY_INVALID\nSTORAGE_SECRET_KEY=EXAMPLE_ONLY_INVALID\nOPTIONAL_VALUE=\n"
+    },
+    {
+      "name": "应用配置.json",
+      "format": "json",
+      "content": "{\n  \"demo_only\": true,\n  \"name\": \"cloud-notes-demo\",\n  \"display_name\": \"云端笔记\",\n  \"environment\": \"development\",\n  \"enabled\": true,\n  \"server\": {\n    \"host\": \"192.0.2.10\",\n    \"port\": 8080,\n    \"url\": \"https://app.example.com\"\n  },\n  \"database\": {\n    \"host\": \"db.example.com\",\n    \"port\": 3306,\n    \"name\": \"cloud_notes_demo\",\n    \"username\": \"demo_user\",\n    \"password\": \"EXAMPLE_ONLY_INVALID\"\n  },\n  \"storage\": {\n    \"bucket\": \"cloud-notes-demo\",\n    \"region\": \"example-region\",\n    \"url\": \"https://assets.example.com\",\n    \"access_key\": \"EXAMPLE_ONLY_INVALID\",\n    \"secret_key\": \"EXAMPLE_ONLY_INVALID\"\n  },\n  \"features\": [\"notes\", \"search\", \"export\"],\n  \"retry\": 3,\n  \"timeout_seconds\": 15.5,\n  \"description\": null,\n  \"labels\": {}\n}\n"
+    }
+  ]
+}

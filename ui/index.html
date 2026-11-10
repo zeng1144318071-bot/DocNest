@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src data:; font-src 'self'; connect-src 'none'; object-src 'none'; frame-src 'none'; base-uri 'none'; form-action 'none'">
-<title>项目资料库 · 预览版</title>
+<title>项目资料库</title>
 <link rel="stylesheet" href="app.css">
 <script src="renderer.js" defer></script>
 </head>
@@ -13,7 +13,7 @@
   <div class="pv-window">
     <header class="pv-top">
       <div class="pv-brand"><i data-lucide="folder-lock" aria-hidden="true"></i>项目资料库</div>
-      <span class="pv-caption">预览版 0.2.0 · Windows 本地加密</span>
+      <span class="pv-caption">正式版 1.0.0 · Windows 本地加密</span>
     </header>
     <div class="pv-shell">
       <aside class="pv-sidebar" aria-label="项目与资料">
@@ -23,10 +23,11 @@
               <label class="pv-label" for="pv-project">项目</label>
               <div class="pv-project-actions" role="group" aria-label="项目操作">
                 <button class="pv-button pv-action-button pv-action-compact" id="pv-project-new" type="button" data-action-icon="folder-plus" data-action-label="新建项目" aria-label="新建项目"><i data-lucide="folder-plus" aria-hidden="true"></i><span class="pv-sr-only">新建项目</span></button>
+                <button class="pv-button pv-action-button pv-action-compact" id="pv-project-example" type="button" data-action-icon="book-open" data-action-label="导入示例项目" aria-label="导入示例项目"><i data-lucide="book-open" aria-hidden="true"></i><span class="pv-sr-only">导入示例项目</span></button>
                 <button class="pv-button pv-action-button pv-action-compact pv-project-action-danger" id="pv-project-delete" type="button" data-action-icon="trash-2" data-action-label="删除项目" aria-label="删除项目"><i data-lucide="trash-2" aria-hidden="true"></i><span class="pv-sr-only">删除项目</span></button>
               </div>
             </div>
-            <select class="pv-input" id="pv-project"><option value="star">开发项目 · 示例</option><option value="shop">商城 · 示例</option></select>
+            <select class="pv-input" id="pv-project"><option value="example">标准示例项目</option></select>
             <div id="pv-project-create" hidden>
               <label class="pv-label" for="pv-project-name">项目名称<input class="pv-input" id="pv-project-name" maxlength="200" autocomplete="off"></label>
               <div class="pv-actions"><button class="pv-button pv-button-primary pv-action-button" id="pv-project-create-save" type="button" data-action-icon="check" data-action-label="创建项目" aria-label="创建项目"><i data-lucide="check" aria-hidden="true"></i><span class="pv-sr-only">创建项目</span></button><button class="pv-button pv-action-button" id="pv-project-create-cancel" type="button" data-action-icon="x" data-action-label="取消创建" aria-label="取消创建"><i data-lucide="x" aria-hidden="true"></i><span class="pv-sr-only">取消创建</span></button></div>
@@ -41,7 +42,7 @@
       </aside>
       <main class="pv-main">
         <section id="pv-library" aria-label="资料预览">
-          <div class="pv-breadcrumb"><span id="pv-breadcrumb-project">开发项目 · 示例</span><span aria-hidden="true">/</span><span id="pv-breadcrumb-file">运行与配置说明.md</span></div>
+          <div class="pv-breadcrumb"><span id="pv-breadcrumb-project">标准示例项目</span><span aria-hidden="true">/</span><span id="pv-breadcrumb-file">运行与配置说明.md</span></div>
           <div class="pv-heading">
             <div><h2 id="pv-title">运行与配置说明.md</h2><p class="pv-subtitle" id="pv-subtitle">Markdown 文档</p></div>
             <div class="pv-actions"><button class="pv-button cursor-interaction pv-action-button" id="pv-import-open" type="button" data-action-icon="file-input" data-action-label="导入资料" aria-label="导入资料"><i data-lucide="file-input" aria-hidden="true"></i><span class="pv-sr-only">导入资料</span></button><button class="pv-button pv-button-primary cursor-interaction pv-action-button" id="pv-export-open" type="button" data-action-icon="file-output" data-action-label="导出资料" aria-label="导出资料"><i data-lucide="file-output" aria-hidden="true"></i><span class="pv-sr-only">导出资料</span></button></div>
@@ -53,7 +54,7 @@
           <div class="pv-content pv-doc" id="pv-content" aria-live="polite"></div>
         </section>
         <section id="pv-import-pane" aria-label="导入资料" hidden>
-          <div class="pv-breadcrumb"><span id="pv-import-project">开发项目 · 示例</span><span aria-hidden="true">/</span><span>导入资料</span></div>
+          <div class="pv-breadcrumb"><span id="pv-import-project">标准示例项目</span><span aria-hidden="true">/</span><span>导入资料</span></div>
           <div class="pv-heading"><div><h2 id="pv-import-heading">导入资料</h2><p class="pv-subtitle">选择文件或粘贴内容，自动识别 TXT、ENV、JSON、MD</p></div><button class="pv-button cursor-interaction pv-action-button" id="pv-import-back" type="button" data-action-icon="arrow-left" data-action-label="返回资料库" aria-label="返回资料库"><i data-lucide="arrow-left" aria-hidden="true"></i><span class="pv-sr-only">返回资料库</span></button></div>
           <div class="pv-pane-grid">
             <section aria-label="选择文件或粘贴内容">
@@ -67,7 +68,7 @@
           <div class="pv-panel-foot"><span class="pv-caption">保存在本机，使用当前 Windows 账户加密</span><button class="pv-button pv-button-primary cursor-interaction pv-action-button" id="pv-import-add" type="button" data-action-icon="save" data-action-label="保存到项目" aria-label="保存到项目"><i data-lucide="save" aria-hidden="true"></i><span class="pv-sr-only">保存到项目</span></button></div>
         </section>
         <section id="pv-export-pane" aria-label="导出资料" hidden>
-          <div class="pv-breadcrumb"><span id="pv-export-project">开发项目 · 示例</span><span aria-hidden="true">/</span><span>导出资料</span></div>
+          <div class="pv-breadcrumb"><span id="pv-export-project">标准示例项目</span><span aria-hidden="true">/</span><span>导出资料</span></div>
           <div class="pv-heading"><div><h2>导出资料</h2><p class="pv-subtitle">选择导出范围和格式，先查看文件内容</p></div><button class="pv-button cursor-interaction pv-action-button" id="pv-export-back" type="button" data-action-icon="arrow-left" data-action-label="返回资料库" aria-label="返回资料库"><i data-lucide="arrow-left" aria-hidden="true"></i><span class="pv-sr-only">返回资料库</span></button></div>
           <div class="pv-form-row">
             <label class="pv-label" for="pv-export-scope">导出范围<select class="pv-input" id="pv-export-scope"><option value="current">当前资料</option><option value="project">整个项目</option></select></label>
