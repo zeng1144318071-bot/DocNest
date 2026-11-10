@@ -39,6 +39,8 @@
 3. 点击左侧资料查看，点击“项目完整预览”连续浏览整个项目。双击文件名或按 F2 可重命名，编辑图标可修改正文。
 4. 导出时选择当前文件或整个项目，再选 TXT / ENV / JSON / MD，查看结果后保存到本机。
 
+右下角的外部链接图标可打开本项目的 GitHub 仓库。悬停或通过 Tab 聚焦时显示完整地址，点击后由默认浏览器打开，可查看源码、版本记录或反馈问题。
+
 标准示例也单独提供 [项目 JSON](examples/project-vault-example.json) 和 Release 中的 `ProjectVault-Examples-版本号.zip`。项目 JSON 可一次恢复四份原始资料；ZIP 内含四份原始文件、项目 JSON 和说明，方便测试单文件导入。详细内容见 [示例说明](examples/README.md)。
 
 | 快捷键 | 操作 |

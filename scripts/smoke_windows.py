@@ -113,7 +113,11 @@ def set_value(renderer, identifier, value, event='change'):
 
 def press_key(renderer, key, code, virtual_key, modifiers=0):
     for event_type in ['keyDown', 'keyUp']:
-        renderer.call('Input.dispatchKeyEvent', {'type': event_type, 'key': key, 'code': code, 'windowsVirtualKeyCode': virtual_key, 'modifiers': modifiers})
+        event = {'type': event_type, 'key': key, 'code': code, 'windowsVirtualKeyCode': virtual_key, 'modifiers': modifiers}
+        # Chromium activates native buttons on Enter's character event.
+        if event_type == 'keyDown' and key == 'Enter':
+            event['text'] = '\r'
+        renderer.call('Input.dispatchKeyEvent', event)
 
 def press_native_key(main, key, modifiers=None):
     # CDP dispatches renderer events directly and bypasses Electron's before-input-event.
@@ -167,6 +171,27 @@ try:
     if not renderer.evaluate("document.getElementById('pv-toast').hidden"):
         click(renderer, 'pv-toast-close')
     renderer.wait("document.getElementById('pv-toast').hidden")
+    # Observe external navigation through the real IPC handler without launching a browser.
+    main.evaluate("globalThis.__pvExternalUrls = []; globalThis.__pvElectron.shell.openExternal = async url => {globalThis.__pvExternalUrls.push(url);}; true")
+    repository_url = json.loads((app_root / 'package.json').read_text(encoding='utf-8'))['repository']['url'].removesuffix('.git')
+    assert renderer.evaluate("document.getElementById('pv-github').dataset.tooltip") == 'GitHub 仓库 · ' + repository_url
+    hover(renderer, 'pv-github')
+    renderer.wait("document.getElementById('pv-action-tooltip').matches(':popover-open')")
+    assert renderer.evaluate("document.getElementById('pv-action-tooltip').textContent") == 'GitHub 仓库 · ' + repository_url
+    assert renderer.evaluate("(() => { const rect=document.getElementById('pv-action-tooltip').getBoundingClientRect(); return rect.left>=0 && rect.right<=innerWidth && rect.top>=0 && rect.bottom<=innerHeight; })()")
+    capture(main, 'github-repository-link.png')
+    click(renderer, 'pv-github')
+    main.wait("globalThis.__pvExternalUrls.length === 1")
+    assert main.evaluate('globalThis.__pvExternalUrls') == [repository_url]
+    # Tab from the data-folder button reaches the repository button and shows its tooltip.
+    renderer.call('Input.dispatchMouseEvent', {'type': 'mouseMoved', 'x': 2, 'y': 2})
+    renderer.evaluate("document.getElementById('pv-data-directory').focus(); true")
+    press_key(renderer, 'Tab', 'Tab', 9)
+    renderer.wait("document.activeElement.id === 'pv-github' && document.getElementById('pv-action-tooltip').matches(':popover-open')")
+    press_key(renderer, 'Enter', 'Enter', 13)
+    main.wait("globalThis.__pvExternalUrls.length === 2")
+    assert main.evaluate('globalThis.__pvExternalUrls') == [repository_url, repository_url]
+    renderer.evaluate("document.activeElement.blur(); true")
     # Update UI uses synthetic states and a mocked installer. Test mode has no network.
     assert renderer.evaluate('window.vaultApp.updateState()')['status'] == 'disabled'
     capture(main, 'readme-overview.png')
@@ -176,7 +201,7 @@ try:
     select_record(renderer, 'guide')
     main.evaluate("""(() => {
       const ipc = globalThis.__pvElectron.ipcMain;
-      globalThis.__pvUpdate = { status:'up-to-date', currentVersion:'1.0.0', latestVersion:null, percent:0, checkedAt:1, revision:1000, message:'' };
+      globalThis.__pvUpdate = { status:'up-to-date', currentVersion:globalThis.__pvElectron.app.getVersion(), latestVersion:null, percent:0, checkedAt:1, revision:1000, message:'' };
       globalThis.__pvInstallCalls = 0;
       ipc.removeHandler('update:check');
       ipc.handle('update:check', () => ({ ...globalThis.__pvUpdate, revision: ++globalThis.__pvUpdate.revision }));
@@ -817,7 +842,8 @@ summary['checks'] += ['toast countdown shows 3, 2, 1 and dismisses in three seco
 summary['checks'] += ['ENV complete source on the left and separate INI sections on the right', 'ENV section headings and inline comments remain inside highlighted code', 'ENV columns stack in narrow import previews and small windows without horizontal overflow', 'complete ENV block copies masked or exact revealed source', 'toast fades before hiding and a new toast cancels any pending exit']
 summary['checks'] += ['native menu removed and Alt does not reveal it', 'Ctrl+O and Ctrl+Shift+S open import and export without a menu', 'Ctrl+A selects editor text and zoom/reset shortcuts remain available']
 summary['checks'] += ['updates disabled in isolated test mode', 'manual check result', 'update download progress and dismissal', 'ready notification reappears when download finishes', 'install requires custom confirmation and safe cancel/Escape', 'unsaved drafts block update installation', 'dismissed update reopens from footer', 'installer IPC only after confirmation', 'installation failure restores usable UI']
-summary['checks'] += ['official 1.0.0 title and single standard first-run project', 'standard example opens without duplicate writes', 'example import preserves existing projects and documents', 'unsaved drafts block example import', 'standard bundle imports all four exact files', 'repeated example import preserves encrypted bytes', 'modified examples remain intact when a fresh numbered example is imported']
+summary['checks'] += ['official version title and single standard first-run project', 'standard example opens without duplicate writes', 'example import preserves existing projects and documents', 'unsaved drafts block example import', 'standard bundle imports all four exact files', 'repeated example import preserves encrypted bytes', 'modified examples remain intact when a fresh numbered example is imported']
+summary['checks'] += ['repository link opens metadata URL through validated IPC', 'full repository URL appears in a bounded tooltip', 'keyboard Tab and Enter activate the repository link']
 summary['checks'] += ['published example ZIP restores every exact original file', 'standalone standard JSON native-file import preserves filenames, formats and content', 'existing and imported example data remain unchanged on restart']
 (check_root / 'results.json').write_text(json.dumps(summary, ensure_ascii=False, indent=2), encoding='utf-8')
 print(json.dumps(summary, ensure_ascii=False, indent=2))

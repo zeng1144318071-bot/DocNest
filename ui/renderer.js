@@ -2,6 +2,7 @@ import MarkdownIt from 'markdown-it';
 import DOMPurify from 'dompurify';
 import { createIcons, icons } from 'lucide';
 import { createControls } from './controls.js';
+import { repository } from '../package.json';
 import { EXAMPLE_PROJECT_ID, createExampleStore, planExampleImport } from '../examples/catalog.cjs';
 import { createUpdateControls } from './updates.js';
 import { detectContentFormat, formatFromFilename, maskEnv, splitEnvSections } from './formats.js';
@@ -13,6 +14,8 @@ globalThis.lucide = { createIcons: options => createIcons({ ...options, icons })
   const { projects, records } = createExampleStore();
   const demoRecords = createExampleStore().records;
   const api = window.vaultApp;
+  const repositoryUrl = repository.url.replace(/\.git$/, '');
+  byId('pv-github').dataset.actionLabel = 'GitHub 仓库 · ' + repositoryUrl;
   let storageReady = false;
   let editingId = null;
   let saving = false;
@@ -531,6 +534,7 @@ globalThis.lucide = { createIcons: options => createIcons({ ...options, icons })
     catch (error) { showFailure(error); }
   });
   byId('pv-data-directory').addEventListener('click', async () => { try { await api.openDataDirectory(); } catch (error) { showFailure(error); } });
+  byId('pv-github').addEventListener('click', async () => { try { await api.openExternal(repositoryUrl); } catch (error) { showFailure(error); } });
   api.onCommand(command => { if (command === 'import' || command === 'export') setRoute(command); });
   root.addEventListener('click', event => {
     const link = event.target.closest('a[href]'); if (!link) return;
