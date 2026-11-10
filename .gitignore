@@ -1,0 +1,16 @@
+node_modules/
+dist-ui/
+release/
+build/icon.ico
+__pycache__/
+*.pyc
+*.log
+.DS_Store
+Thumbs.db
+.env
+.env.*
+vault*.dat
+*.pem
+*.pfx
+*.key
+coverage/

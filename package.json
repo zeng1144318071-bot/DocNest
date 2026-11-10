@@ -1,0 +1,92 @@
+{
+  "name": "project-vault-preview",
+  "version": "0.2.0",
+  "description": "本地项目资料库：TXT / ENV / JSON / Markdown 导入、预览、转换与加密保存",
+  "productName": "项目资料库",
+  "author": {
+    "name": "Pippo",
+    "url": "https://github.com/zeng1144318071-bot"
+  },
+  "private": true,
+  "main": "main.cjs",
+  "scripts": {
+    "build:renderer": "node scripts/build.cjs",
+    "start": "npm run build:renderer && electron .",
+    "pack": "npm run build:renderer && electron-builder --win dir --x64 --publish never",
+    "dist": "npm run build:renderer && electron-builder --win nsis --x64 --publish never",
+    "test": "node --test tests/*.test.cjs",
+    "test:windows": "python scripts/smoke_windows.py"
+  },
+  "dependencies": {
+    "dompurify": "3.4.17",
+    "electron-updater": "6.8.11",
+    "lucide": "1.71.0",
+    "markdown-it": "15.0.3"
+  },
+  "devDependencies": {
+    "@resvg/resvg-js": "2.6.2",
+    "electron": "45.2.3",
+    "electron-builder": "26.18.0",
+    "esbuild": "0.28.2",
+    "png-to-ico": "3.0.2"
+  },
+  "build": {
+    "afterPack": "scripts/after-pack.cjs",
+    "appId": "local.projectvault.preview",
+    "productName": "项目资料库",
+    "asar": true,
+    "directories": {
+      "output": "release",
+      "buildResources": "build"
+    },
+    "files": [
+      "main.cjs",
+      "preload.cjs",
+      "dist-ui/**/*",
+      "package.json",
+      "updates.cjs",
+      "LICENSE"
+    ],
+    "win": {
+      "target": [
+        {
+          "target": "nsis",
+          "arch": [
+            "x64"
+          ]
+        }
+      ],
+      "icon": "build/icon.ico",
+      "artifactName": "ProjectVault-Setup-${version}-${arch}.${ext}"
+    },
+    "nsis": {
+      "oneClick": false,
+      "perMachine": false,
+      "allowElevation": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "项目资料库",
+      "deleteAppDataOnUninstall": false,
+      "installerLanguages": [
+        "zh_CN",
+        "en_US"
+      ],
+      "language": "2052"
+    },
+    "publish": {
+      "provider": "github",
+      "owner": "zeng1144318071-bot",
+      "repo": "project-vault-desktop"
+    }
+  },
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/zeng1144318071-bot/project-vault-desktop.git"
+  },
+  "homepage": "https://github.com/zeng1144318071-bot/project-vault-desktop#readme",
+  "bugs": {
+    "url": "https://github.com/zeng1144318071-bot/project-vault-desktop/issues"
+  }
+}

@@ -1,0 +1,118 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src data:; font-src 'self'; connect-src 'none'; object-src 'none'; frame-src 'none'; base-uri 'none'; form-action 'none'">
+<title>项目资料库 · 预览版</title>
+<link rel="stylesheet" href="app.css">
+<script src="renderer.js" defer></script>
+</head>
+<body>
+<div id="project-vault-preview" aria-label="项目资料库桌面版">
+  <div class="pv-window">
+    <header class="pv-top">
+      <div class="pv-brand"><i data-lucide="folder-lock" aria-hidden="true"></i>项目资料库</div>
+      <span class="pv-caption">预览版 0.2.0 · Windows 本地加密</span>
+    </header>
+    <div class="pv-shell">
+      <aside class="pv-sidebar" aria-label="项目与资料">
+        <div class="pv-sidebar-head">
+          <div class="pv-project-field">
+            <div class="pv-project-heading">
+              <label class="pv-label" for="pv-project">项目</label>
+              <div class="pv-project-actions" role="group" aria-label="项目操作">
+                <button class="pv-button pv-action-button pv-action-compact" id="pv-project-new" type="button" data-action-icon="folder-plus" data-action-label="新建项目" aria-label="新建项目"><i data-lucide="folder-plus" aria-hidden="true"></i><span class="pv-sr-only">新建项目</span></button>
+                <button class="pv-button pv-action-button pv-action-compact pv-project-action-danger" id="pv-project-delete" type="button" data-action-icon="trash-2" data-action-label="删除项目" aria-label="删除项目"><i data-lucide="trash-2" aria-hidden="true"></i><span class="pv-sr-only">删除项目</span></button>
+              </div>
+            </div>
+            <select class="pv-input" id="pv-project"><option value="star">开发项目 · 示例</option><option value="shop">商城 · 示例</option></select>
+            <div id="pv-project-create" hidden>
+              <label class="pv-label" for="pv-project-name">项目名称<input class="pv-input" id="pv-project-name" maxlength="200" autocomplete="off"></label>
+              <div class="pv-actions"><button class="pv-button pv-button-primary pv-action-button" id="pv-project-create-save" type="button" data-action-icon="check" data-action-label="创建项目" aria-label="创建项目"><i data-lucide="check" aria-hidden="true"></i><span class="pv-sr-only">创建项目</span></button><button class="pv-button pv-action-button" id="pv-project-create-cancel" type="button" data-action-icon="x" data-action-label="取消创建" aria-label="取消创建"><i data-lucide="x" aria-hidden="true"></i><span class="pv-sr-only">取消创建</span></button></div>
+            </div>
+          </div>
+          <label class="pv-label" for="pv-search">查找资料<input class="pv-input" id="pv-search" type="search" placeholder="文件名或内容" autocomplete="off" spellcheck="false"></label>
+        </div>
+        <button class="pv-file cursor-interaction" id="pv-overview" type="button" aria-pressed="false"><span class="pv-file-icon"><i data-lucide="panels-top-left" aria-hidden="true"></i></span><span class="pv-file-text"><span class="pv-file-name">项目完整预览</span><span class="pv-file-meta">查看项目的全部资料</span></span></button>
+        <div class="pv-nav-label"><span>资料文件</span><span id="pv-file-count">4 份</span></div>
+        <nav class="pv-nav" id="pv-files" aria-label="选择资料"></nav>
+        <div class="pv-empty" id="pv-no-results" hidden>没有找到匹配的资料</div>
+      </aside>
+      <main class="pv-main">
+        <section id="pv-library" aria-label="资料预览">
+          <div class="pv-breadcrumb"><span id="pv-breadcrumb-project">开发项目 · 示例</span><span aria-hidden="true">/</span><span id="pv-breadcrumb-file">运行与配置说明.md</span></div>
+          <div class="pv-heading">
+            <div><h2 id="pv-title">运行与配置说明.md</h2><p class="pv-subtitle" id="pv-subtitle">Markdown 文档</p></div>
+            <div class="pv-actions"><button class="pv-button cursor-interaction pv-action-button" id="pv-import-open" type="button" data-action-icon="file-input" data-action-label="导入资料" aria-label="导入资料"><i data-lucide="file-input" aria-hidden="true"></i><span class="pv-sr-only">导入资料</span></button><button class="pv-button pv-button-primary cursor-interaction pv-action-button" id="pv-export-open" type="button" data-action-icon="file-output" data-action-label="导出资料" aria-label="导出资料"><i data-lucide="file-output" aria-hidden="true"></i><span class="pv-sr-only">导出资料</span></button></div>
+          </div>
+          <div class="pv-toolbar">
+            <div class="pv-actions"><span class="pv-type" id="pv-native-type">MD</span><div class="pv-view-switch" id="pv-native-switch" role="group" aria-label="Markdown 查看方式"><button class="pv-view-button cursor-interaction pv-action-button" id="pv-view-preview" type="button" aria-pressed="true" data-action-icon="eye" data-action-label="Markdown 预览" aria-label="Markdown 预览"><i data-lucide="eye" aria-hidden="true"></i><span class="pv-sr-only">Markdown 预览</span></button><button class="pv-view-button cursor-interaction pv-action-button" id="pv-view-source" type="button" aria-pressed="false" data-action-icon="code-xml" data-action-label="Markdown 源码" aria-label="Markdown 源码"><i data-lucide="code-xml" aria-hidden="true"></i><span class="pv-sr-only">Markdown 源码</span></button></div></div>
+            <div class="pv-actions"><button class="pv-button pv-action-button" id="pv-rename" type="button" data-action-icon="text-cursor-input" data-action-label="重命名资料" aria-label="重命名资料"><i data-lucide="text-cursor-input" aria-hidden="true"></i><span class="pv-sr-only">重命名资料</span></button><button class="pv-button pv-action-button" id="pv-edit" type="button" data-action-icon="square-pen" data-action-label="编辑资料" aria-label="编辑资料"><i data-lucide="square-pen" aria-hidden="true"></i><span class="pv-sr-only">编辑资料</span></button><button class="pv-button pv-button-danger pv-action-button" id="pv-delete" type="button" data-action-icon="trash-2" data-action-label="删除资料" aria-label="删除资料"><i data-lucide="trash-2" aria-hidden="true"></i><span class="pv-sr-only">删除资料</span></button><button class="pv-button cursor-interaction pv-action-button" id="pv-reveal" type="button" aria-pressed="false" data-action-icon="eye" data-action-label="显示敏感值" aria-label="显示敏感值"><i data-lucide="eye" aria-hidden="true"></i><span class="pv-sr-only">显示敏感值</span></button><button class="pv-button cursor-interaction pv-action-button" id="pv-copy" type="button" data-action-icon="copy" data-action-label="复制内容" aria-label="复制内容"><i data-lucide="copy" aria-hidden="true"></i><span class="pv-sr-only">复制内容</span></button></div>
+          </div>
+          <div class="pv-content pv-doc" id="pv-content" aria-live="polite"></div>
+        </section>
+        <section id="pv-import-pane" aria-label="导入资料" hidden>
+          <div class="pv-breadcrumb"><span id="pv-import-project">开发项目 · 示例</span><span aria-hidden="true">/</span><span>导入资料</span></div>
+          <div class="pv-heading"><div><h2 id="pv-import-heading">导入资料</h2><p class="pv-subtitle">选择文件或粘贴内容，自动识别 TXT、ENV、JSON、MD</p></div><button class="pv-button cursor-interaction pv-action-button" id="pv-import-back" type="button" data-action-icon="arrow-left" data-action-label="返回资料库" aria-label="返回资料库"><i data-lucide="arrow-left" aria-hidden="true"></i><span class="pv-sr-only">返回资料库</span></button></div>
+          <div class="pv-pane-grid">
+            <section aria-label="选择文件或粘贴内容">
+              <div class="pv-section-heading"><h3><label for="pv-import-editor">粘贴内容或选择文件</label></h3><button class="pv-button cursor-interaction pv-action-button" id="pv-import-example" type="button" data-action-icon="flask-conical" data-action-label="填入示例" aria-label="填入示例"><i data-lucide="flask-conical" aria-hidden="true"></i><span class="pv-sr-only">填入示例</span></button></div>
+              <div class="pv-actions pv-open-file"><button class="pv-button pv-action-button" id="pv-choose-file" type="button" data-action-icon="folder-open" data-action-label="选择本地文件" aria-label="选择本地文件"><i data-lucide="folder-open" aria-hidden="true"></i><span class="pv-sr-only">选择本地文件</span></button><span class="pv-caption" id="pv-chosen-file"></span></div>
+              <textarea class="pv-editor" id="pv-import-editor" rows="10" placeholder="在这里粘贴资料内容" spellcheck="false"></textarea>
+            </section>
+            <section aria-label="导入内容预览"><div class="pv-section-heading"><h3>内容预览</h3><span class="pv-type" id="pv-import-preview-type">TXT</span></div><div class="pv-doc" id="pv-import-preview" aria-live="polite"></div></section>
+          </div>
+          <label class="pv-check" id="pv-import-bundle-label" hidden><input id="pv-import-bundle" type="checkbox" checked><span id="pv-import-bundle-text">作为项目资料包导入</span></label><p class="pv-error" id="pv-import-error" role="alert" hidden></p>
+          <div class="pv-panel-foot"><span class="pv-caption">保存在本机，使用当前 Windows 账户加密</span><button class="pv-button pv-button-primary cursor-interaction pv-action-button" id="pv-import-add" type="button" data-action-icon="save" data-action-label="保存到项目" aria-label="保存到项目"><i data-lucide="save" aria-hidden="true"></i><span class="pv-sr-only">保存到项目</span></button></div>
+        </section>
+        <section id="pv-export-pane" aria-label="导出资料" hidden>
+          <div class="pv-breadcrumb"><span id="pv-export-project">开发项目 · 示例</span><span aria-hidden="true">/</span><span>导出资料</span></div>
+          <div class="pv-heading"><div><h2>导出资料</h2><p class="pv-subtitle">选择导出范围和格式，先查看文件内容</p></div><button class="pv-button cursor-interaction pv-action-button" id="pv-export-back" type="button" data-action-icon="arrow-left" data-action-label="返回资料库" aria-label="返回资料库"><i data-lucide="arrow-left" aria-hidden="true"></i><span class="pv-sr-only">返回资料库</span></button></div>
+          <div class="pv-form-row">
+            <label class="pv-label" for="pv-export-scope">导出范围<select class="pv-input" id="pv-export-scope"><option value="current">当前资料</option><option value="project">整个项目</option></select></label>
+            <label class="pv-label" for="pv-export-format">导出格式<select class="pv-input" id="pv-export-format"><option value="text">TXT / .txt</option><option value="env">ENV / .env</option><option value="json">JSON / .json</option><option value="markdown">MD / .md</option></select></label>
+          </div>
+          <div class="pv-toolbar"><div class="pv-actions"><span class="pv-type" id="pv-export-type">MD</span><span class="pv-caption" id="pv-export-filename"></span></div><div class="pv-view-switch" id="pv-export-switch" role="group" aria-label="导出 Markdown 查看方式"><button class="pv-view-button cursor-interaction pv-action-button" id="pv-export-preview-button" type="button" aria-pressed="true" data-action-icon="eye" data-action-label="导出 Markdown 预览" aria-label="导出 Markdown 预览"><i data-lucide="eye" aria-hidden="true"></i><span class="pv-sr-only">导出 Markdown 预览</span></button><button class="pv-view-button cursor-interaction pv-action-button" id="pv-export-source-button" type="button" aria-pressed="false" data-action-icon="code-xml" data-action-label="导出 Markdown 源码" aria-label="导出 Markdown 源码"><i data-lucide="code-xml" aria-hidden="true"></i><span class="pv-sr-only">导出 Markdown 源码</span></button></div></div>
+          <div class="pv-content pv-doc" id="pv-export-preview" aria-live="polite"></div>
+          <p class="pv-subtitle" id="pv-export-rule"></p>
+          <div class="pv-panel-foot"><label class="pv-check" for="pv-export-secrets"><input id="pv-export-secrets" type="checkbox">包含敏感字段</label><div class="pv-actions"><button class="pv-button pv-action-button" id="pv-export-copy" type="button" data-action-icon="copy" data-action-label="复制导出内容" aria-label="复制导出内容"><i data-lucide="copy" aria-hidden="true"></i><span class="pv-sr-only">复制导出内容</span></button><button class="pv-button pv-button-primary pv-action-button" id="pv-export-save" type="button" data-action-icon="download" data-action-label="导出文件" aria-label="导出文件"><i data-lucide="download" aria-hidden="true"></i><span class="pv-sr-only">导出文件</span></button></div></div>
+        </section>
+      </main>
+    </div>
+    <footer class="pv-status"><span id="pv-status-summary">4 份资料 · TXT / ENV / JSON / MD</span><span class="pv-feedback" id="pv-feedback" aria-live="polite"></span><div class="pv-actions"><span id="pv-save-status">正在读取资料库…</span><button class="pv-link-button pv-action-button pv-action-compact" id="pv-check-update" type="button" data-action-icon="refresh-cw" data-action-label="检查更新" aria-label="检查更新"><i data-lucide="refresh-cw" aria-hidden="true"></i><span class="pv-sr-only">检查更新</span></button><button class="pv-link-button pv-action-button pv-action-compact" id="pv-data-directory" type="button" data-action-icon="folder-open" data-action-label="打开数据目录" aria-label="打开数据目录"><i data-lucide="folder-open" aria-hidden="true"></i><span class="pv-sr-only">打开数据目录</span></button></div></footer>
+  </div>
+  <div class="pv-toast" id="pv-toast" role="status" aria-live="polite" aria-atomic="true" hidden>
+    <span class="pv-toast-icon" id="pv-toast-icon" aria-hidden="true"></span>
+    <div class="pv-toast-text"><strong id="pv-toast-title"></strong><p id="pv-toast-detail"></p><span class="pv-sr-only">3 秒后自动关闭</span></div>
+    <button class="pv-icon-button pv-toast-dismiss" id="pv-toast-close" type="button" aria-label="关闭提示" data-tooltip="关闭提示">
+      <svg class="pv-toast-countdown-ring" viewBox="0 0 32 32" fill="none" aria-hidden="true"><circle class="pv-toast-countdown-track" cx="16" cy="16" r="12.5" pathLength="1"></circle><circle class="pv-toast-countdown-progress" id="pv-toast-progress" cx="16" cy="16" r="12.5" pathLength="1"></circle></svg>
+      <span class="pv-toast-countdown-number" id="pv-toast-countdown" aria-hidden="true">3</span>
+    </button>
+  </div>
+  <dialog class="pv-dialog" id="pv-confirm-dialog" aria-labelledby="pv-confirm-title" aria-describedby="pv-confirm-scope pv-confirm-warning">
+    <div class="pv-dialog-head"><span class="pv-dialog-icon"><i data-lucide="trash-2" aria-hidden="true"></i></span><button class="pv-icon-button" id="pv-confirm-close" type="button" aria-label="关闭删除确认" data-tooltip="关闭删除确认"><i data-lucide="x" aria-hidden="true"></i></button></div>
+    <div class="pv-dialog-body"><h2 id="pv-confirm-title">删除资料？</h2><div class="pv-confirm-target"><span class="pv-caption" id="pv-confirm-label">资料名称</span><strong id="pv-confirm-name"></strong></div><p id="pv-confirm-scope"></p><p class="pv-confirm-warning" id="pv-confirm-warning">删除后无法撤销，请先导出需要保留的资料。</p></div>
+    <div class="pv-dialog-foot"><button class="pv-button" id="pv-confirm-cancel" type="button" autofocus>取消，保留资料</button><button class="pv-button pv-button-destructive" id="pv-confirm-delete" type="button">删除资料</button></div>
+  </dialog>
+  <aside class="pv-update-card" id="pv-update-card" aria-label="应用更新" hidden>
+    <div class="pv-update-heading"><span class="pv-update-symbol"><i data-lucide="arrow-up-from-line" aria-hidden="true"></i></span><strong id="pv-update-title" role="status"></strong><button class="pv-icon-button pv-action-button pv-action-compact" id="pv-update-dismiss" type="button" data-action-icon="x" data-action-label="稍后提醒" aria-label="稍后提醒"><i data-lucide="x" aria-hidden="true"></i><span class="pv-sr-only">稍后提醒</span></button></div>
+    <p id="pv-update-detail"></p><div class="pv-update-progress-row"><progress id="pv-update-progress" max="100" value="0" aria-label="新版安装包下载进度"></progress><span class="pv-caption" id="pv-update-percent"></span></div>
+    <button class="pv-button pv-button-primary pv-action-button" id="pv-update-install" type="button" data-action-icon="download" data-action-label="安装更新" aria-label="安装更新"><i data-lucide="download" aria-hidden="true"></i><span class="pv-sr-only">安装更新</span></button>
+  </aside>
+  <dialog class="pv-dialog" id="pv-update-dialog" aria-labelledby="pv-update-dialog-title" aria-describedby="pv-update-confirm-version">
+    <div class="pv-dialog-head"><span class="pv-dialog-icon pv-dialog-icon-neutral"><i data-lucide="package-check" aria-hidden="true"></i></span><button class="pv-icon-button" id="pv-update-close" type="button" aria-label="关闭更新确认" data-tooltip="关闭更新确认"><i data-lucide="x" aria-hidden="true"></i></button></div>
+    <div class="pv-dialog-body"><h2 id="pv-update-dialog-title">安装新版本？</h2><p id="pv-update-confirm-version"></p></div>
+    <div class="pv-dialog-foot"><button class="pv-button" id="pv-update-cancel" type="button" autofocus>稍后安装</button><button class="pv-button pv-button-primary" id="pv-update-confirm" type="button">安装并重新打开</button></div>
+  </dialog>
+  <dialog class="pv-dialog" id="pv-rename-dialog" aria-labelledby="pv-rename-title" aria-describedby="pv-rename-hint">
+    <form id="pv-rename-form" novalidate>
+      <div class="pv-dialog-head"><span class="pv-dialog-icon pv-dialog-icon-neutral"><i data-lucide="text-cursor-input" aria-hidden="true"></i></span><button class="pv-icon-button" id="pv-rename-close" type="button" aria-label="关闭重命名" data-tooltip="关闭重命名"><i data-lucide="x" aria-hidden="true"></i></button></div>
+      <div class="pv-dialog-body"><h2 id="pv-rename-title">重命名资料</h2><label class="pv-label pv-rename-label" for="pv-rename-input">资料名称<input class="pv-input" id="pv-rename-input" type="text" maxlength="255" autocomplete="off" spellcheck="false" aria-describedby="pv-rename-hint pv-rename-error" autofocus></label><p class="pv-caption pv-rename-hint" id="pv-rename-hint"></p><p class="pv-error" id="pv-rename-error" role="alert" hidden></p></div>
+      <div class="pv-dialog-foot"><button class="pv-button pv-action-button" id="pv-rename-cancel" type="button" data-action-icon="x" data-action-label="取消重命名" aria-label="取消重命名"><i data-lucide="x" aria-hidden="true"></i><span class="pv-sr-only">取消重命名</span></button><button class="pv-button pv-button-primary pv-action-button" id="pv-rename-save" type="submit" data-action-icon="check" data-action-label="保存名称" aria-label="保存名称"><i data-lucide="check" aria-hidden="true"></i><span class="pv-sr-only">保存名称</span></button></div>
+    </form>
+  </dialog>
+
+</div>
+</body>
+</html>
