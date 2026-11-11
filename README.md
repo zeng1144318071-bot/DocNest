@@ -1,11 +1,13 @@
-# DocNest
+<h1 align="center">DocNest</h1>
 
-<img src="build/icon.svg" width="96" height="96" alt="DocNest 文档归巢 Logo">
+<p align="center"><img src="build/icon.svg" width="96" height="96" alt="DocNest 文档归巢 Logo"></p>
 
-[![Windows checks](https://github.com/zeng1144318071-bot/DocNest/actions/workflows/ci.yml/badge.svg)](https://github.com/zeng1144318071-bot/DocNest/actions/workflows/ci.yml)
-[![macOS release](https://github.com/zeng1144318071-bot/DocNest/actions/workflows/mac-release.yml/badge.svg)](https://github.com/zeng1144318071-bot/DocNest/actions/workflows/mac-release.yml)
-[![Release](https://img.shields.io/github/v/release/zeng1144318071-bot/DocNest)](https://github.com/zeng1144318071-bot/DocNest/releases/latest)
-[![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
+<p align="center">
+  <a href="https://github.com/zeng1144318071-bot/DocNest/actions/workflows/ci.yml"><img src="https://github.com/zeng1144318071-bot/DocNest/actions/workflows/ci.yml/badge.svg" alt="Windows checks"></a>
+  <a href="https://github.com/zeng1144318071-bot/DocNest/actions/workflows/mac-release.yml"><img src="https://github.com/zeng1144318071-bot/DocNest/actions/workflows/mac-release.yml/badge.svg" alt="macOS release"></a>
+  <a href="https://github.com/zeng1144318071-bot/DocNest/releases/latest"><img src="https://img.shields.io/github/v/release/zeng1144318071-bot/DocNest" alt="Release"></a>
+  <a href="LICENSE"><img src="https://img.shields.io/badge/License-MIT-green.svg" alt="License: MIT"></a>
+</p>
 
 DocNest 是一个本地项目资料库。把散落在记事本里的项目说明、服务器记录和环境配置按项目收在一起，方便搜索、预览、编辑和导出。
 
