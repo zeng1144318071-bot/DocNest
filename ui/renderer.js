@@ -10,6 +10,7 @@ globalThis.lucide = { createIcons: options => createIcons({ ...options, icons })
 (async () => {
   const root = document.getElementById('project-vault-preview');
   const byId = id => root.querySelector('#' + id);
+  const mainPane = root.querySelector('.pv-main');
   const formats = { text: { label: 'TXT 文档', short: 'TXT', ext: '.txt', icon: 'file-text' }, env: { label: 'ENV 配置', short: 'ENV', ext: '.env', icon: 'sliders-horizontal' }, json: { label: 'JSON 源码', short: 'JSON', ext: '.json', icon: 'braces' }, markdown: { label: 'Markdown 文档', short: 'MD', ext: '.md', icon: 'pilcrow' } };
   const { projects, records } = createExampleStore();
   const demoRecords = createExampleStore().records;
@@ -180,6 +181,7 @@ globalThis.lucide = { createIcons: options => createIcons({ ...options, icons })
     const all = projectRecords(); const query = byId('pv-search').value.trim().toLocaleLowerCase();
     const matches = all.filter(record => (record.name + ' ' + maskSource(record.source, record.format)).toLocaleLowerCase().includes(query));
     byId('pv-file-count').textContent = all.length + ' 份';
+    byId('pv-overview-count').textContent = String(all.length);
     byId('pv-status-summary').textContent = all.length + ' 份资料 · TXT / ENV / JSON / MD';
     byId('pv-overview').setAttribute('aria-pressed', String(selected === null && route === 'library'));
     const list = byId('pv-files');
@@ -325,14 +327,17 @@ globalThis.lucide = { createIcons: options => createIcons({ ...options, icons })
     for (const name of ['library', 'import', 'export']) byId(name === 'library' ? 'pv-library' : 'pv-' + name + '-pane').hidden = route !== name;
     renderSidebar();
     if (route === 'library') renderLibrary(); else if (route === 'import') renderImport(); else renderExport();
+    syncMainScroll();
     refreshIcons();
   }
-  function selectRecord(id) { selected = id; route = 'library'; sourceView = false; revealSecrets = false; feedback(''); render(); saveChoice(); }
+  function syncMainScroll() { mainPane.classList.toggle('pv-main-scrolled', mainPane.scrollTop > 48); }
+  mainPane.addEventListener('scroll', syncMainScroll, { passive: true });
+  function selectRecord(id) { selected = id; route = 'library'; sourceView = false; revealSecrets = false; mainPane.scrollTop = 0; feedback(''); render(); saveChoice(); }
   function setRoute(value) {
     if (saving || deleting || renaming) return;
     if (value !== 'library' && !Object.hasOwn(projects, project)) { openProjectForm(); feedback('请先新建项目'); return; }
     if (value === 'export' && !projectRecords().length) { feedback('项目暂无资料，请先导入资料'); return; }
-    route = value; revealSecrets = false; feedback('');
+    route = value; mainPane.scrollTop = 0; revealSecrets = false; feedback('');
     if (route === 'import') { editingId = null; importName = ''; importHint = null; importFormat = 'text'; setImportSource(''); }
     if (route === 'export') { exportScope = selected === null ? 'project' : 'current'; exportFormat = currentRecord()?.format || 'markdown'; exportSourceView = false; byId('pv-export-secrets').checked = false; }
     render(); saveChoice();

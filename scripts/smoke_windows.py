@@ -195,6 +195,10 @@ try:
     # Update UI uses synthetic states and a mocked installer. Test mode has no network.
     assert renderer.evaluate('window.vaultApp.updateState()')['status'] == 'disabled'
     capture(main, 'readme-overview.png')
+    renderer.evaluate("document.querySelector('.pv-main').scrollTop = 500; true")
+    renderer.wait("document.querySelector('.pv-main').classList.contains('pv-main-scrolled')")
+    assert renderer.evaluate("(() => { const heading=document.querySelector('#pv-library > .pv-heading'), pane=document.querySelector('.pv-main'); return Math.abs(heading.getBoundingClientRect().top-pane.getBoundingClientRect().top)<2 && getComputedStyle(document.getElementById('pv-title')).fontSize==='16px'; })()")
+    renderer.evaluate("document.querySelector('.pv-main').scrollTop = 0; true")
     select_record(renderer, 'environment')
     assert renderer.evaluate("Array.from(document.querySelectorAll('#pv-content .pv-env-group')).map(node => node.dataset.envSection)") == ['', 'app', 'database', 'redis', 'storage']
     capture(main, 'readme-env.png')
@@ -464,6 +468,12 @@ try:
     # Paste recognition replaces the removed name/type form; preview remains editable.
     click(renderer, 'pv-import-open')
     assert renderer.evaluate("document.querySelector('#pv-import-pane .pv-form-row') === null && document.getElementById('pv-import-name') === null && document.getElementById('pv-import-format') === null")
+    set_value(renderer, 'pv-import-editor', '\n'.join(f'KEY_{index}=value' for index in range(80)), 'input')
+    renderer.evaluate("document.querySelector('.pv-main').scrollTop = 500; true")
+    renderer.wait("document.querySelector('.pv-main').classList.contains('pv-main-scrolled')")
+    assert renderer.evaluate("(() => { const pane=document.querySelector('.pv-main').getBoundingClientRect(), foot=document.querySelector('#pv-import-pane > .pv-panel-foot').getBoundingClientRect(), save=document.getElementById('pv-import-add').getBoundingClientRect(); return Math.abs(foot.bottom-pane.bottom)<3 && save.top>foot.top && save.bottom<=foot.bottom; })()")
+    capture(main, 'sticky-import-save.png')
+    renderer.evaluate("document.querySelector('.pv-main').scrollTop = 0; true")
     for format_name, (_, content) in contents.items():
         set_value(renderer, 'pv-import-editor', content, 'input')
         assert renderer.evaluate("document.getElementById('pv-import-preview-type').dataset.format") == format_name
@@ -869,6 +879,7 @@ summary['checks'] += ['native menu removed and Alt does not reveal it', 'Ctrl+O 
 summary['checks'] += ['update checking icon animates continuously and timeout restores button', 'updates disabled in isolated test mode', 'manual check result', 'update download progress and dismissal', 'ready notification reappears when download finishes', 'install requires custom confirmation and safe cancel/Escape', 'unsaved drafts block update installation', 'dismissed update reopens from footer', 'installer IPC only after confirmation', 'installation failure restores usable UI']
 summary['checks'] += ['edit, record/project deletion, file/bundle import and export success toasts', 'canceled export has no success toast and failed deletion shows error', 'official version title and single standard first-run project', 'standard example opens without duplicate writes', 'example import preserves existing projects and documents', 'unsaved drafts block example import', 'standard bundle imports all four exact files', 'repeated example import preserves encrypted bytes', 'modified examples remain intact when a fresh numbered example is imported']
 summary['checks'] += ['repository link opens metadata URL through validated IPC', 'full repository URL appears in a bounded tooltip', 'keyboard Tab and Enter activate the repository link']
+summary['checks'] += ['scrolled document title shrinks and sticks to main pane top', 'long editor keeps save button visible at pane bottom']
 summary['checks'] += ['published example ZIP restores every exact original file', 'standalone standard JSON native-file import preserves filenames, formats and content', 'existing and imported example data remain unchanged on restart']
 (check_root / 'results.json').write_text(json.dumps(summary, ensure_ascii=False, indent=2), encoding='utf-8')
 print(json.dumps(summary, ensure_ascii=False, indent=2))
