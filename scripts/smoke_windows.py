@@ -663,6 +663,10 @@ try:
     assert (data_root / 'vault.prev.dat').exists()
     renderer.evaluate('new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(() => resolve(true))))')
     capture(main, 'installed-app.png')
+    main.evaluate("globalThis.__pvElectron.BrowserWindow.getAllWindows()[0].close(); true")
+    main.wait("globalThis.__pvElectron.BrowserWindow.getAllWindows().length === 1 && !globalThis.__pvElectron.BrowserWindow.getAllWindows()[0].isVisible()")
+    main.evaluate("globalThis.__pvElectron.app.emit('second-instance'); true")
+    main.wait("globalThis.__pvElectron.BrowserWindow.getAllWindows()[0].isVisible()")
 finally:
     stop_app(process, main, renderer, log)
 
@@ -880,6 +884,7 @@ summary['checks'] += ['update checking icon animates continuously and timeout re
 summary['checks'] += ['edit, record/project deletion, file/bundle import and export success toasts', 'canceled export has no success toast and failed deletion shows error', 'official version title and single standard first-run project', 'standard example opens without duplicate writes', 'example import preserves existing projects and documents', 'unsaved drafts block example import', 'standard bundle imports all four exact files', 'repeated example import preserves encrypted bytes', 'modified examples remain intact when a fresh numbered example is imported']
 summary['checks'] += ['repository link opens metadata URL through validated IPC', 'full repository URL appears in a bounded tooltip', 'keyboard Tab and Enter activate the repository link']
 summary['checks'] += ['scrolled document title shrinks and sticks to main pane top', 'long editor keeps save button visible at pane bottom']
+summary['checks'] += ['Windows close keeps the window alive and hides it', 'second launch restores the hidden window', 'app quit still exits cleanly']
 summary['checks'] += ['published example ZIP restores every exact original file', 'standalone standard JSON native-file import preserves filenames, formats and content', 'existing and imported example data remain unchanged on restart']
 (check_root / 'results.json').write_text(json.dumps(summary, ensure_ascii=False, indent=2), encoding='utf-8')
 print(json.dumps(summary, ensure_ascii=False, indent=2))

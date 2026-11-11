@@ -1,4 +1,4 @@
-const { app, BrowserWindow, ipcMain, dialog, safeStorage, shell, Menu, nativeTheme } = require('electron');
+const { app, BrowserWindow, ipcMain, dialog, safeStorage, shell, Menu, Tray, nativeImage, nativeTheme } = require('electron');
 const fs = require('node:fs/promises');
 const path = require('node:path');
 const { createUpdates } = require('./updates.cjs');
@@ -15,6 +15,7 @@ app.setName('DocNest');
 if (process.platform === 'win32') app.setAppUserModelId('local.projectvault.preview');
 if (!testMode && !app.requestSingleInstanceLock()) app.exit(0);
 let mainWindow;
+let tray;
 let readableVault = false;
 let saveQueue = Promise.resolve();
 let updates;
@@ -23,7 +24,13 @@ let quitting = false;
 const fileFormats = new Set(['text', 'env', 'json', 'markdown']);
 const vaultDirectory = () => app.getPath('userData');
 const vaultFile = () => path.join(vaultDirectory(), 'vault.dat');
-app.on('second-instance', () => { if (mainWindow) { if (mainWindow.isMinimized()) mainWindow.restore(); mainWindow.show(); mainWindow.focus(); } });
+function showMainWindow() {
+  if (!mainWindow || mainWindow.isDestroyed()) return;
+  if (mainWindow.isMinimized()) mainWindow.restore();
+  mainWindow.show();
+  mainWindow.focus();
+}
+app.on('second-instance', showMainWindow);
 
 function requireRenderer(event) {
   if (!mainWindow || event.sender !== mainWindow.webContents || event.senderFrame !== mainWindow.webContents.mainFrame) throw new Error('请求来源无效。');
@@ -152,6 +159,25 @@ app.whenReady().then(async () => {
     { role: 'editMenu' }, { role: 'windowMenu' }
   ]) : null);
   mainWindow = new BrowserWindow({ title: 'DocNest', width: 1220, height: 900, minWidth: 760, minHeight: 600, show: false, backgroundColor: nativeTheme.shouldUseDarkColors ? '#181e27' : '#ffffff', icon: path.join(__dirname, 'dist-ui', 'icon.png'), webPreferences: { preload: path.join(__dirname, 'preload.cjs'), contextIsolation: true, nodeIntegration: false, sandbox: true, spellcheck: false, devTools: testMode || !app.isPackaged } });
+  if (process.platform === 'win32') {
+    mainWindow.on('close', event => {
+      if (quitting) return;
+      event.preventDefault();
+      mainWindow.hide();
+    });
+    if (!testMode) {
+      const icon = nativeImage.createFromPath(path.join(__dirname, 'dist-ui', 'icon.png')).resize({ width: 16, height: 16 });
+      tray = new Tray(icon);
+      tray.setToolTip('DocNest');
+      tray.setContextMenu(Menu.buildFromTemplate([
+        { label: '打开 DocNest', click: showMainWindow },
+        { type: 'separator' },
+        { label: '退出 DocNest', click: () => app.quit() }
+      ]));
+      tray.on('click', showMainWindow);
+      tray.on('double-click', showMainWindow);
+    }
+  }
   mainWindow.webContents.on('before-input-event', (event, input) => {
     if (input.type !== 'keyDown' || input.isComposing || input.alt) return;
     const key = input.key.toLowerCase();

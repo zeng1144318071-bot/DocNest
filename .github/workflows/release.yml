@@ -65,6 +65,8 @@ jobs:
         run: npx --no-install electron-builder --win nsis --x64 --prepackaged release/win-unpacked --publish never
         env:
           CSC_IDENTITY_AUTO_DISCOVERY: 'false'
+      - name: Verify default directory and uninstall
+        run: ./scripts/smoke_installer_windows.ps1
       - name: Generate SHA256 checksums
         run: |
           $version = (Get-Content package.json -Raw | ConvertFrom-Json).version
