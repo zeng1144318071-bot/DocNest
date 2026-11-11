@@ -278,3 +278,10 @@ body { overflow: hidden; }
   #project-vault-preview .pv-toast { animation: none; }
   #project-vault-preview .pv-select-trigger > svg { transition: none; }
 }
+
+/* Keep the busy indicator moving while the bounded network check runs. */
+#project-vault-preview #pv-check-update[data-checking="true"] svg { animation: pv-update-spin 1s linear infinite; transform-origin: center; }
+@keyframes pv-update-spin { to { transform: rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) {
+  #project-vault-preview #pv-check-update[data-checking="true"] svg { animation: none; }
+}

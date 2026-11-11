@@ -113,10 +113,14 @@ app.whenReady().then(async () => {
   });
   ipcMain.handle('app:data-directory', event => { requireRenderer(event); return shell.openPath(vaultDirectory()); });
   const updateEnabled = app.isPackaged && !testMode && process.platform === 'win32';
-  const updater = updateEnabled ? require('electron-updater').autoUpdater : null;
-  if (updater) updater.logger = null;
+  const createUpdater = () => {
+    const updater = new (require('electron-updater').NsisUpdater)();
+    updater.logger = null;
+    return updater;
+  };
+  const updater = updateEnabled ? createUpdater() : null;
   updates = createUpdates({
-    updater, enabled: updateEnabled, version: app.getVersion(),
+    updater, createUpdater, enabled: updateEnabled, version: app.getVersion(),
     onState: state => { if (mainWindow && !mainWindow.isDestroyed()) mainWindow.webContents.send('update:state', state); },
     beforeInstall: async () => {
       await saveQueue;

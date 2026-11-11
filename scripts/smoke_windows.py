@@ -216,6 +216,13 @@ try:
         globalThis.__pvElectron.BrowserWindow.getAllWindows()[0].webContents.send('update:state', { ...globalThis.__pvUpdate });
       }; return true;
     })()""")
+    main.evaluate("globalThis.__pvSendUpdate({status:'checking'}); true")
+    renderer.wait("document.getElementById('pv-check-update').disabled && document.getElementById('pv-check-update').getAttribute('aria-busy') === 'true'")
+    assert renderer.evaluate("getComputedStyle(document.querySelector('#pv-check-update svg')).animationName") == 'pv-update-spin'
+    assert renderer.evaluate("getComputedStyle(document.querySelector('#pv-check-update svg')).animationIterationCount") == 'infinite'
+    main.evaluate("globalThis.__pvSendUpdate({status:'error',message:'检查更新超时（30 秒），请检查网络后重试。'}); true")
+    renderer.wait("!document.getElementById('pv-check-update').disabled && document.getElementById('pv-check-update').getAttribute('aria-busy') === 'false'")
+    main.evaluate("globalThis.__pvSendUpdate({status:'up-to-date',message:''}); true")
     click(renderer, 'pv-check-update')
     renderer.wait("document.getElementById('pv-toast-title').textContent === '已是最新版本'")
     main.evaluate("globalThis.__pvSendUpdate({status:'downloading', latestVersion:'1.1.0', percent:42}); true")
@@ -845,7 +852,7 @@ summary['checks'] += ['rename via toolbar, real sidebar double-click, F2 and pro
 summary['checks'] += ['toast countdown shows 3, 2, 1 and dismisses in three seconds even on hover', 'repeated copy restarts countdown without early dismissal', 'countdown circle closes the toast and restores keyboard focus', 'reduced motion uses a static ring updated once per second']
 summary['checks'] += ['ENV complete source on the left and separate INI sections on the right', 'ENV section headings and inline comments remain inside highlighted code', 'ENV columns stack in narrow import previews and small windows without horizontal overflow', 'complete ENV block copies masked or exact revealed source', 'toast fades before hiding and a new toast cancels any pending exit']
 summary['checks'] += ['native menu removed and Alt does not reveal it', 'Ctrl+O and Ctrl+Shift+S open import and export without a menu', 'Ctrl+A selects editor text and zoom/reset shortcuts remain available']
-summary['checks'] += ['updates disabled in isolated test mode', 'manual check result', 'update download progress and dismissal', 'ready notification reappears when download finishes', 'install requires custom confirmation and safe cancel/Escape', 'unsaved drafts block update installation', 'dismissed update reopens from footer', 'installer IPC only after confirmation', 'installation failure restores usable UI']
+summary['checks'] += ['update checking icon animates continuously and timeout restores button', 'updates disabled in isolated test mode', 'manual check result', 'update download progress and dismissal', 'ready notification reappears when download finishes', 'install requires custom confirmation and safe cancel/Escape', 'unsaved drafts block update installation', 'dismissed update reopens from footer', 'installer IPC only after confirmation', 'installation failure restores usable UI']
 summary['checks'] += ['official version title and single standard first-run project', 'standard example opens without duplicate writes', 'example import preserves existing projects and documents', 'unsaved drafts block example import', 'standard bundle imports all four exact files', 'repeated example import preserves encrypted bytes', 'modified examples remain intact when a fresh numbered example is imported']
 summary['checks'] += ['repository link opens metadata URL through validated IPC', 'full repository URL appears in a bounded tooltip', 'keyboard Tab and Enter activate the repository link']
 summary['checks'] += ['published example ZIP restores every exact original file', 'standalone standard JSON native-file import preserves filenames, formats and content', 'existing and imported example data remain unchanged on restart']

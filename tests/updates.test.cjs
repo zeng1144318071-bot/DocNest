@@ -1,7 +1,7 @@
 const test = require('node:test');
 const assert = require('node:assert/strict');
 const { EventEmitter } = require('node:events');
-const { createUpdates, CHECK_INTERVAL } = require('../updates.cjs');
+const { createUpdates, CHECK_INTERVAL, CHECK_TIMEOUT } = require('../updates.cjs');
 
 function fixture(options = {}) {
   const updater = new EventEmitter();
@@ -24,7 +24,7 @@ test('checks at startup and every five minutes; start is idempotent and dispose 
   assert.equal(f.timeouts[0].delay, 1500); assert.equal(f.intervals[0].delay, 300000);
   f.timeouts[0].fn(); await tick(); f.intervals[0].fn(); await tick();
   assert.equal(f.checks(), 2); assert.equal(f.service.getState().checkedAt, 1234);
-  f.service.dispose(); assert.equal(f.cleared.length, 2);
+  f.service.dispose(); assert.ok(f.cleared.includes(f.timeouts[0])); assert.ok(f.cleared.includes(f.intervals[0]));
   await f.service.check(); assert.equal(f.checks(), 2);
   assert.equal(f.updater.listenerCount('update-downloaded'), 0);
 });
@@ -106,4 +106,51 @@ test('installer launch errors are reported and block accidental reinstall', asyn
   await assert.rejects(f.service.install(), /安装未开始/);
   assert.equal(f.service.getState().status, 'error');
   await assert.rejects(f.service.install(), /尚未下载/);
+});
+
+
+test('stalled checks time out, retry on a fresh updater, and ignore late old events', async () => {
+  const fresh = new EventEmitter();
+  fresh.checkForUpdates = async () => { fresh.emit('update-not-available'); return {}; };
+  const f = fixture({ createUpdater: () => fresh });
+  let finish;
+  f.updater.checkForUpdates = () => new Promise(resolve => { finish = resolve; });
+  const pending = f.service.check();
+  await tick();
+  assert.equal(f.service.getState().status, 'checking');
+  assert.equal(CHECK_TIMEOUT, 30000);
+  f.timeouts.find(timer => timer.delay === CHECK_TIMEOUT).fn();
+  assert.equal((await pending).status, 'error');
+  assert.match(f.service.getState().message, /30 秒/);
+  assert.equal(f.updater.autoDownload, false);
+  assert.equal((await f.service.check()).status, 'up-to-date');
+  f.updater.emit('update-available', { version: '9.0.0' });
+  f.updater.emit('error', new Error('late failure'));
+  finish({}); await tick();
+  assert.equal(f.service.getState().status, 'up-to-date');
+  f.service.dispose();
+});
+
+test('latest version may skip multiple releases without intermediate installation', async () => {
+  const f = fixture({ version: '1.0.0' });
+  f.updater.checkForUpdates = async () => {
+    f.updater.emit('update-available', { version: '1.0.5' });
+    f.updater.emit('update-downloaded', { version: '1.0.5' });
+    return {};
+  };
+  const result = await f.service.check();
+  assert.equal(result.latestVersion, '1.0.5');
+  assert.equal(result.status, 'downloaded');
+  await f.service.install();
+  assert.equal(f.installs.length, 1);
+});
+
+test('disposing a stalled check settles it without late state changes', async () => {
+  const f = fixture();
+  f.updater.checkForUpdates = () => new Promise(() => {});
+  const pending = f.service.check(); await tick();
+  f.service.dispose(); await pending;
+  const count = f.states.length;
+  f.updater.emit('update-downloaded', { version: '9.0.0' });
+  assert.equal(f.states.length, count);
 });

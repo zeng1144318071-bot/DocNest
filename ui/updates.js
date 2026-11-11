@@ -27,6 +27,8 @@ export function createUpdateControls(root, { api, ui, refreshIcons, canInstall }
     byId('pv-update-dismiss').disabled = installing || state.status === 'installing';
     button.disabled = installing || ['checking', 'installing'].includes(state.status);
     button.dataset.updateReady = String(ready);
+    button.dataset.checking = String(state.status === 'checking');
+    button.setAttribute('aria-busy', String(state.status === 'checking'));
     ui.setAction(button, ready ? 'circle-arrow-up' : state.status === 'checking' ? 'loader-circle' : 'refresh-cw', ready ? '安装新版本 v' + state.latestVersion : state.status === 'checking' ? '正在检查更新' : '检查更新');
     refreshIcons();
   }

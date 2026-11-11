@@ -1,8 +1,9 @@
 const CHECK_INTERVAL = 5 * 60 * 1000;
+const CHECK_TIMEOUT = 30 * 1000;
 
 // Network and installer access stay in the main process. The renderer receives only
 // this small state object, never installer paths or arbitrary download URLs.
-function createUpdates({ updater, enabled, version, onState = () => {}, beforeInstall = async () => {}, timers = globalThis, now = Date.now }) {
+function createUpdates({ updater, createUpdater, enabled, version, onState = () => {}, beforeInstall = async () => {}, timers = globalThis, now = Date.now }) {
   let state = { status: enabled ? 'idle' : 'disabled', currentVersion: version, latestVersion: null, percent: 0, checkedAt: null, revision: 0, message: '' };
   let pendingCheck;
   let installing = false;
@@ -10,6 +11,7 @@ function createUpdates({ updater, enabled, version, onState = () => {}, beforeIn
   let startupTimer;
   let intervalTimer;
   const listeners = [];
+  let cancelCheck;
   const getState = () => ({ ...state });
   function update(patch) {
     if (disposed) return;
@@ -20,7 +22,7 @@ function createUpdates({ updater, enabled, version, onState = () => {}, beforeIn
     update({ status: 'error', percent: 0, message: '暂时无法获取更新，请检查网络后重试。' });
   }
   function listen(name, callback) { updater.on(name, callback); listeners.push([name, callback]); }
-  if (enabled) {
+  function configureUpdater() {
     updater.autoDownload = true;
     updater.autoInstallOnAppQuit = false;
     updater.allowPrerelease = false;
@@ -33,19 +35,43 @@ function createUpdates({ updater, enabled, version, onState = () => {}, beforeIn
     listen('update-downloaded', info => update({ status: 'downloaded', latestVersion: info.version, percent: 100, message: '' }));
     listen('error', failed);
   }
+  if (enabled) configureUpdater();
+  function retireUpdater() {
+    // An expired request may still complete. Prevent it from downloading or
+    // emitting state into the new attempt; never reuse its pending promise.
+    updater.autoDownload = false;
+    for (const [name, listener] of listeners.splice(0)) updater.removeListener(name, listener);
+    updater.on('error', () => {});
+  }
   function check() {
     if (disposed || !enabled) return Promise.resolve(getState());
     if (pendingCheck) return pendingCheck;
     if (['downloading', 'downloaded', 'installing'].includes(state.status) || installing) return Promise.resolve(getState());
     // Assign before invoking the updater, so simultaneous manual/timer checks coalesce.
     pendingCheck = Promise.resolve().then(async () => {
+      if (disposed) return getState();
       update({ status: 'checking', message: '', checkedAt: now() });
+      let deadline;
+      let expired = false;
+      const activeUpdater = updater;
+      const timeout = new Promise(resolve => {
+        cancelCheck = () => { expired = true; resolve(null); };
+        deadline = timers.setTimeout(() => {
+          expired = true;
+          retireUpdater();
+          update({ status: 'error', percent: 0, message: '检查更新超时（30 秒），请检查网络后重试。' });
+          if (createUpdater) { updater = createUpdater(); configureUpdater(); }
+          resolve(null);
+        }, CHECK_TIMEOUT);
+      });
       try {
-        const result = await updater.checkForUpdates();
+        const result = await Promise.race([activeUpdater.checkForUpdates(), timeout]);
+        if (expired || disposed) return getState();
         // Downloads outlive the manifest check; their rejection also needs a handler.
         if (result?.downloadPromise) void result.downloadPromise.catch(failed);
         if (state.status === 'checking') update({ status: 'up-to-date', latestVersion: null, percent: 0 });
-      } catch (_) { failed(); }
+      } catch (_) { if (!expired) failed(); }
+      finally { timers.clearTimeout(deadline); cancelCheck = null; }
       return getState();
     }).finally(() => { pendingCheck = null; });
     return pendingCheck;
@@ -71,9 +97,10 @@ function createUpdates({ updater, enabled, version, onState = () => {}, beforeIn
   function dispose() {
     disposed = true;
     timers.clearTimeout(startupTimer); timers.clearInterval(intervalTimer);
-    for (const [name, listener] of listeners) updater.removeListener(name, listener);
+    cancelCheck?.();
+    if (enabled) retireUpdater();
   }
   return { getState, check, start, install, dispose };
 }
 
-module.exports = { CHECK_INTERVAL, createUpdates };
+module.exports = { CHECK_INTERVAL, CHECK_TIMEOUT, createUpdates };
