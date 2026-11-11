@@ -441,6 +441,13 @@ try:
         while (not target.exists() or target.stat().st_size <= 100) and time.monotonic() < deadline:
             time.sleep(.05)
         assert target.exists() and target.stat().st_size > 100, format_name + ': ' + str(renderer.evaluate("document.getElementById('pv-feedback').textContent"))
+        renderer.wait("!document.getElementById('pv-toast').hidden && document.getElementById('pv-toast-title').textContent === '导出成功'")
+    click(renderer, 'pv-toast-close')
+    renderer.wait("document.getElementById('pv-toast').hidden")
+    main.evaluate("globalThis.__pvElectron.dialog.showSaveDialog = async () => ({ canceled:true }); true")
+    click(renderer, 'pv-export-save')
+    time.sleep(.15)
+    assert renderer.evaluate("document.getElementById('pv-toast').hidden")
     bundle = json.loads((export_root / 'project.json').read_text(encoding='utf-8'))
     assert len(bundle['files']) == 4 and len({item['format'] for item in bundle['files']}) == 4
     click(renderer, 'pv-export-back')
@@ -499,6 +506,7 @@ try:
             assert renderer.evaluate("document.querySelectorAll('#pv-import-preview img').length") == 0
         click(renderer, 'pv-import-add')
         renderer.wait("!document.getElementById('pv-library').hidden && document.getElementById('pv-save-status').textContent === '已加密保存'")
+        renderer.wait("!document.getElementById('pv-toast').hidden && document.getElementById('pv-toast-title').textContent === '导入成功'")
         assert renderer.evaluate("document.getElementById('pv-title').textContent") == name
         if format_name == 'env':
             assert renderer.evaluate("document.querySelectorAll('#pv-content .pv-env-group').length") == 5
@@ -662,6 +670,8 @@ try:
     set_value(renderer, 'pv-import-editor', edited, 'input')
     click(renderer, 'pv-import-add')
     renderer.wait("!document.getElementById('pv-library').hidden && document.getElementById('pv-save-status').textContent === '已加密保存'")
+    renderer.wait("!document.getElementById('pv-toast').hidden && document.getElementById('pv-toast-title').textContent === '修改已保存'")
+    capture(main, 'edit-success-toast.png')
     saved = renderer.evaluate('window.vaultApp.load()')['store']
     edited_record = next(record for record in saved['records'] if record['id'] == env_record['id'])
     assert edited_record['source'] == edited.replace('\r\n', '\n')
@@ -683,6 +693,7 @@ try:
     click(renderer, 'pv-delete')
     answer_delete(renderer, True)
     renderer.wait('!document.querySelector(\'[data-record="' + env_record['id'] + '"]\')')
+    renderer.wait("document.getElementById('pv-toast-title').textContent === '删除成功'")
     after_file_delete = renderer.evaluate('window.vaultApp.load()')['store']
     assert not any(record['id'] == env_record['id'] for record in after_file_delete['records'])
     assert len([record for record in after_file_delete['records'] if record['project'] == project_id]) == 3
@@ -723,6 +734,7 @@ try:
     click(renderer, 'pv-project-delete')
     answer_delete(renderer, True)
     renderer.wait("document.getElementById('pv-save-status').textContent === '保存失败'")
+    assert renderer.evaluate("document.getElementById('pv-toast-title').textContent") == '操作失败'
     assert renderer.evaluate('window.vaultApp.load()')['store'] == before_project_delete
     assert renderer.evaluate("document.getElementById('pv-project').value") == project_id
     assert renderer.evaluate("document.querySelectorAll('#pv-content .pv-overview-item').length") == 2
@@ -731,6 +743,7 @@ try:
     click(renderer, 'pv-project-delete')
     answer_delete(renderer, True)
     renderer.wait('!Array.from(document.getElementById("pv-project").options).some(option => option.value === ' + json.dumps(project_id) + ')')
+    renderer.wait("document.getElementById('pv-toast-title').textContent === '项目已删除'")
     after_project_delete = renderer.evaluate('window.vaultApp.load()')['store']
     assert project_id not in after_project_delete['projects']
     assert not any(record['project'] == project_id for record in after_project_delete['records'])
@@ -785,6 +798,7 @@ try:
     assert renderer.evaluate("!document.getElementById('pv-import-bundle-label').hidden")
     click(renderer, 'pv-import-add')
     renderer.wait("!document.getElementById('pv-library').hidden && document.getElementById('pv-save-status').textContent === '已加密保存'")
+    renderer.wait("document.getElementById('pv-toast-title').textContent === '导入成功' && document.getElementById('pv-toast-detail').textContent === '1 份资料已加密保存'")
     assert renderer.evaluate("document.getElementById('pv-title').textContent") == 'settings.original.conf'
     assert renderer.evaluate("document.querySelectorAll('#pv-content .pv-env-group').length") == 1
     renderer.evaluate('new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(() => resolve(true))))')
@@ -853,7 +867,7 @@ summary['checks'] += ['toast countdown shows 3, 2, 1 and dismisses in three seco
 summary['checks'] += ['ENV complete source on the left and separate INI sections on the right', 'ENV section headings and inline comments remain inside highlighted code', 'ENV columns stack in narrow import previews and small windows without horizontal overflow', 'complete ENV block copies masked or exact revealed source', 'toast fades before hiding and a new toast cancels any pending exit']
 summary['checks'] += ['native menu removed and Alt does not reveal it', 'Ctrl+O and Ctrl+Shift+S open import and export without a menu', 'Ctrl+A selects editor text and zoom/reset shortcuts remain available']
 summary['checks'] += ['update checking icon animates continuously and timeout restores button', 'updates disabled in isolated test mode', 'manual check result', 'update download progress and dismissal', 'ready notification reappears when download finishes', 'install requires custom confirmation and safe cancel/Escape', 'unsaved drafts block update installation', 'dismissed update reopens from footer', 'installer IPC only after confirmation', 'installation failure restores usable UI']
-summary['checks'] += ['official version title and single standard first-run project', 'standard example opens without duplicate writes', 'example import preserves existing projects and documents', 'unsaved drafts block example import', 'standard bundle imports all four exact files', 'repeated example import preserves encrypted bytes', 'modified examples remain intact when a fresh numbered example is imported']
+summary['checks'] += ['edit, record/project deletion, file/bundle import and export success toasts', 'canceled export has no success toast and failed deletion shows error', 'official version title and single standard first-run project', 'standard example opens without duplicate writes', 'example import preserves existing projects and documents', 'unsaved drafts block example import', 'standard bundle imports all four exact files', 'repeated example import preserves encrypted bytes', 'modified examples remain intact when a fresh numbered example is imported']
 summary['checks'] += ['repository link opens metadata URL through validated IPC', 'full repository URL appears in a bounded tooltip', 'keyboard Tab and Enter activate the repository link']
 summary['checks'] += ['published example ZIP restores every exact original file', 'standalone standard JSON native-file import preserves filenames, formats and content', 'existing and imported example data remain unchanged on restart']
 (check_root / 'results.json').write_text(json.dumps(summary, ensure_ascii=False, indent=2), encoding='utf-8')

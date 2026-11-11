@@ -388,6 +388,7 @@ globalThis.lucide = { createIcons: options => createIcons({ ...options, icons })
       if (await commitMutation(() => { const index = records.findIndex(item => item.id === id); if (index >= 0) records.splice(index, 1); })) {
         const next = selected === id ? (projectRecords()[position] || projectRecords()[position - 1])?.id || null : selected;
         selectRecord(next); feedback('已删除资料：' + record.name);
+        ui.toast('删除成功', record.name);
         (next === null ? byId('pv-overview') : byId('pv-delete')).focus();
       }
     } catch (error) { showFailure(error); }
@@ -408,6 +409,7 @@ globalThis.lucide = { createIcons: options => createIcons({ ...options, icons })
         editingId = null; byId('pv-import-editor').value = ''; byId('pv-search').value = '';
         selectRecord(projectRecords()[0]?.id || null);
         feedback('已删除项目“' + name + '”及 ' + count + ' 份资料');
+        ui.toast('项目已删除', name + ' · ' + count + ' 份资料');
         (project ? byId('pv-project-trigger') : byId('pv-project-new')).focus();
       }
     } catch (error) { showFailure(error); }
@@ -476,6 +478,7 @@ globalThis.lucide = { createIcons: options => createIcons({ ...options, icons })
   byId('pv-import-add').addEventListener('click', async () => {
     if (byId('pv-import-add').disabled) return;
     const bundle = !editingId && byId('pv-import-bundle').checked ? detectBundle(importSource(), importFormat) : null;
+    const isEditing = Boolean(editingId);
     const id = editingId || crypto.randomUUID();
     const ok = await commitMutation(() => {
       if (bundle) {
@@ -486,7 +489,12 @@ globalThis.lucide = { createIcons: options => createIcons({ ...options, icons })
         if (existing >= 0) records[existing] = record; else records.push(record);
       }
     });
-    if (ok) { const resultId = bundle ? records.at(-1).id : id; editingId = null; byId('pv-search').value = ''; selectRecord(resultId); feedback(bundle ? '项目资料包已导入并加密保存' : '资料已加密保存'); }
+    if (ok) {
+      const resultId = bundle ? records.at(-1).id : id;
+      editingId = null; byId('pv-search').value = ''; selectRecord(resultId);
+      feedback(bundle ? '项目资料包已导入并加密保存' : '资料已加密保存');
+      ui.toast(isEditing ? '修改已保存' : '导入成功', bundle ? bundle.length + ' 份资料已加密保存' : currentRecord().name + ' · 已加密保存');
+    }
     else renderImport();
   });
   byId('pv-edit').addEventListener('click', () => {
@@ -530,7 +538,7 @@ globalThis.lucide = { createIcons: options => createIcons({ ...options, icons })
   byId('pv-export-secrets').addEventListener('change', () => { renderExport(); refreshIcons(); });
   byId('pv-export-copy').addEventListener('click', () => copyText(exportText(), byId('pv-export-copy')));
   byId('pv-export-save').addEventListener('click', async () => {
-    try { const result = await api.saveFile({ name: exportFilename(), content: exportText(), format: exportFormat }); if (!result.canceled) feedback('已导出：' + result.name); }
+    try { const result = await api.saveFile({ name: exportFilename(), content: exportText(), format: exportFormat }); if (!result.canceled) { feedback('已导出：' + result.name); ui.toast('导出成功', result.name); } }
     catch (error) { showFailure(error); }
   });
   byId('pv-data-directory').addEventListener('click', async () => { try { await api.openDataDirectory(); } catch (error) { showFailure(error); } });
