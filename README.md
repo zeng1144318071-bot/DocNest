@@ -7,11 +7,11 @@
 [![Release](https://img.shields.io/github/v/release/zeng1144318071-bot/DocNest)](https://github.com/zeng1144318071-bot/DocNest/releases/latest)
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 
-把散落在记事本里的项目说明、服务器资料和环境配置整理到一个本地桌面工具中。
+DocNest 是一个本地项目资料库。把散落在记事本里的项目说明、服务器记录和环境配置按项目收在一起，方便搜索、预览、编辑和导出。
 
-DocNest 支持 **TXT、ENV、JSON、Markdown** 四种格式的导入、预览、编辑与转换，按项目集中查看。Windows 使用 DPAPI 加密，macOS 使用钥匙串加密；安装版每 5 分钟检查 GitHub 新版本。
+支持 **TXT、ENV、JSON、Markdown** 四种格式；资料保存在本机，Windows 使用 DPAPI 加密，macOS 使用钥匙串加密。无需账号或云同步，离线也能查看资料。
 
-**[下载 Windows / macOS 安装包](https://github.com/zeng1144318071-bot/DocNest/releases/latest) · [标准示例](examples/README.md) · [版本记录](CHANGELOG.md) · [参与开发](CONTRIBUTING.md)**
+**[下载 Windows / macOS 安装包](https://github.com/zeng1144318071-bot/DocNest/releases/latest) · [查看标准示例](examples/README.md) · [给项目点个 Star](https://github.com/zeng1144318071-bot/DocNest)**
 
 ![DocNest：项目与 Markdown 预览，全部为虚构演示资料](docs/images/overview.png)
 
@@ -26,14 +26,23 @@ DocNest 支持 **TXT、ENV、JSON、Markdown** 四种格式的导入、预览、
 | Markdown | 渲染标题、列表、表格、链接与代码块，可切换源码 |
 | 导入与导出 | 选择文件或粘贴内容，自动识别类型；四种格式可切换导出 |
 | 整个项目打包 | 导出项目 JSON，重新导入时恢复文件名、原始类型和正文 |
-| 本地保护 | DPAPI 加密保存、保存上一版副本、安装更新前备份 |
+| 本地保护 | Windows DPAPI / macOS 钥匙串加密；保留上一版副本，Windows 安装更新前备份 |
 | 更新提示 | 启动后检查，每 5 分钟再次检查；Windows 确认后安装，Mac 下载 DMG 后手动替换 |
 
-统一的小图标工具栏配有悬停和键盘提示。滚动资料时标题收在顶部，导入与编辑页的保存按钮固定在底部。Windows 点击窗口关闭按钮会收起到托盘，点击托盘图标可重新打开，右键菜单可完全退出。项目切换、重命名、删除确认、更新确认使用应用内组件。复制、编辑保存、删除、导入和导出成功后统一显示 Toast，带 3 秒圆环倒计时和淡出动画，并支持系统减少动画设置。支持浅色与深色主题。
+统一的小图标工具栏配有悬停和键盘提示。滚动长资料时标题和操作按钮收在顶部，导入与编辑页的保存按钮固定在底部。Windows 点击窗口关闭按钮会收起到托盘，点击托盘图标可重新打开，右键菜单可完全退出。项目切换、重命名、删除确认、更新确认使用应用内组件。复制、编辑保存、删除、导入和导出成功后统一显示 Toast，带 3 秒圆环倒计时和淡出动画，并支持系统减少动画设置。支持浅色与深色主题。
+底部外观图标可选择白天模式、夜晚模式或跟随系统；选择会保存到本机，并在下次启动时恢复。
 
 ## 软件截图
 
 以下截图均来自当前版本的标准虚构示例，敏感字段保持隐藏。
+
+### 外观模式
+
+底部图标可切换跟随系统、白天与夜晚模式。
+
+![DocNest 外观模式菜单](docs/images/theme-menu.png)
+
+![DocNest 夜晚模式预览](docs/images/theme-dark.png)
 
 ### ENV 分组预览
 
@@ -146,7 +155,7 @@ npm run dist
 
 ## 发布与贡献
 
-欢迎通过 Issue 提交问题或建议，提交截图前请隐藏私密内容。开发约定与发布步骤见 [CONTRIBUTING.md](CONTRIBUTING.md)，漏洞反馈见 [SECURITY.md](SECURITY.md)。
+喜欢 DocNest 的话，欢迎 [给项目点个 Star](https://github.com/zeng1144318071-bot/DocNest)，让更多人发现它。问题和建议可以通过 Issue 反馈，提交截图前请隐藏私密内容。开发约定与发布步骤见 [CONTRIBUTING.md](CONTRIBUTING.md)，漏洞反馈见 [SECURITY.md](SECURITY.md)。
 
 GitHub Actions 为每个主分支提交和 Pull Request 执行 Windows 检查。维护者推送与 `package.json` 版本一致的 `v*` 标签后，发布流程会测试并生成安装包、更新描述文件、差分元数据、标准示例资料包及 SHA256 校验文件，发布到 GitHub Releases。
 

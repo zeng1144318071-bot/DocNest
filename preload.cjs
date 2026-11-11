@@ -6,6 +6,8 @@ contextBridge.exposeInMainWorld('vaultApp', {
   saveFile: value => ipcRenderer.invoke('file:save', value),
   openDataDirectory: () => ipcRenderer.invoke('app:data-directory'),
   openExternal: url => ipcRenderer.invoke('app:external-link', url),
+  themeState: () => ipcRenderer.invoke('theme:state'),
+  setTheme: source => ipcRenderer.invoke('theme:set', source),
   updateState: () => ipcRenderer.invoke('update:state'),
   checkUpdates: () => ipcRenderer.invoke('update:check'),
   installUpdate: () => ipcRenderer.invoke('update:install'),

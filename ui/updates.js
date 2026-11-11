@@ -1,3 +1,5 @@
+import { hideMenus } from './popovers.js';
+
 export function createUpdateControls(root, { api, ui, refreshIcons, canInstall, platform }) {
   const byId = id => root.querySelector('#' + id);
   const button = byId('pv-check-update');
@@ -69,7 +71,7 @@ export function createUpdateControls(root, { api, ui, refreshIcons, canInstall, 
     if (root.querySelector('dialog[open]')) return;
     returnFocus = document.activeElement;
     byId('pv-update-confirm-version').textContent = '即将安装 v' + state.latestVersion + '。应用会关闭并重新打开，安装前自动备份已保存的加密资料。';
-    dialog.showModal(); byId('pv-update-cancel').focus();
+    hideMenus(root); dialog.showModal(); byId('pv-update-cancel').focus();
   }
   function closeInstall() { if (!installing) dialog.close(); }
   button.addEventListener('click', async () => {

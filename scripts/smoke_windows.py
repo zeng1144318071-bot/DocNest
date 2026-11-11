@@ -129,6 +129,11 @@ def hover(renderer, identifier):
     point = renderer.evaluate(f"(() => {{ const rect=document.getElementById({json.dumps(identifier)}).getBoundingClientRect(); return {{x:rect.left+rect.width/2,y:rect.top+rect.height/2}}; }})()")
     renderer.call('Input.dispatchMouseEvent', {'type': 'mouseMoved', **point})
 
+def click_outside_overlay(renderer, identifier):
+    assert renderer.evaluate(f"(() => {{ const rect=document.getElementById({json.dumps(identifier)}).getBoundingClientRect(); return rect.left>8 && rect.top>8; }})()")
+    for event_type in ['mousePressed', 'mouseReleased']:
+        renderer.call('Input.dispatchMouseEvent', {'type': event_type, 'button': 'left', 'clickCount': 1, 'x': 8, 'y': 8})
+
 def select_record(renderer, identifier):
     renderer.evaluate(f"(() => {{ const button=[...document.querySelectorAll('[data-record]')].find(node => node.dataset.record === {json.dumps(identifier)}); button.focus(); button.click(); }})()")
 
@@ -171,6 +176,51 @@ try:
     if not renderer.evaluate("document.getElementById('pv-toast').hidden"):
         click(renderer, 'pv-toast-close')
     renderer.wait("document.getElementById('pv-toast').hidden")
+    renderer.wait("!document.getElementById('pv-theme-trigger').disabled")
+    assert renderer.evaluate("window.vaultApp.themeState()")['source'] == 'system'
+    click(renderer, 'pv-theme-trigger')
+    renderer.wait("document.getElementById('pv-theme-menu').matches(':popover-open')")
+    capture(main, 'theme-menu.png')
+    assert renderer.evaluate("document.activeElement.dataset.theme") == 'system'
+    assert renderer.evaluate("(() => { const r=document.getElementById('pv-theme-menu').getBoundingClientRect(); return r.left>=0 && r.right<=innerWidth && r.top>=0 && r.bottom<=innerHeight; })()")
+    click_outside_overlay(renderer, 'pv-theme-menu')
+    assert renderer.evaluate("document.getElementById('pv-theme-menu').matches(':popover-open')")
+    renderer.evaluate("document.getElementById('pv-search').focus(); true")
+    press_key(renderer, 'Escape', 'Escape', 27)
+    renderer.wait("!document.getElementById('pv-theme-menu').matches(':popover-open') && document.activeElement.id === 'pv-theme-trigger'")
+    click(renderer, 'pv-theme-trigger')
+    press_key(renderer, 'ArrowDown', 'ArrowDown', 40)
+    assert renderer.evaluate("document.activeElement.dataset.theme") == 'light'
+    press_key(renderer, 'Enter', 'Enter', 13)
+    renderer.wait("window.vaultApp.themeState().then(state => state.source === 'light')")
+    assert renderer.evaluate("getComputedStyle(document.querySelector('.pv-window')).backgroundColor") == 'rgb(255, 255, 255)'
+    click(renderer, 'pv-theme-trigger')
+    renderer.evaluate("document.querySelector('[data-theme=dark]').click(); true")
+    renderer.wait("window.vaultApp.themeState().then(state => state.source === 'dark')")
+    assert renderer.evaluate("matchMedia('(prefers-color-scheme: dark)').matches")
+    assert renderer.evaluate("getComputedStyle(document.querySelector('.pv-window')).backgroundColor") == 'rgb(24, 30, 39)'
+    assert renderer.evaluate("document.querySelector('[data-theme=dark]').getAttribute('aria-checked')") == 'true'
+    assert json.loads((data_root / 'appearance.json').read_text(encoding='utf-8')) == {'source': 'dark'}
+    if not renderer.evaluate("document.getElementById('pv-toast').hidden"):
+        click(renderer, 'pv-toast-close')
+    renderer.wait("document.getElementById('pv-toast').hidden")
+    renderer.evaluate("document.activeElement.blur(); true")
+    renderer.call('Input.dispatchMouseEvent', {'type': 'mouseMoved', 'x': 2, 'y': 2})
+    renderer.wait("document.getElementById('pv-toast').hidden && !document.getElementById('pv-action-tooltip').matches(':popover-open')")
+    capture(main, 'theme-dark.png')
+    click(renderer, 'pv-theme-trigger')
+    press_key(renderer, 'Escape', 'Escape', 27)
+    renderer.wait("!document.getElementById('pv-theme-menu').matches(':popover-open') && document.activeElement.id === 'pv-theme-trigger'")
+    click(renderer, 'pv-theme-trigger')
+    press_key(renderer, 'Tab', 'Tab', 9)
+    renderer.wait("!document.getElementById('pv-theme-menu').matches(':popover-open') && document.activeElement.id === 'pv-check-update'")
+    click(renderer, 'pv-theme-trigger')
+    press_key(renderer, 'Tab', 'Tab', 9, 8)
+    renderer.wait("!document.getElementById('pv-theme-menu').matches(':popover-open') && document.activeElement.id === 'pv-theme-trigger'")
+    assert renderer.evaluate("window.vaultApp.setTheme('invalid').then(() => false, () => true)")
+    click(renderer, 'pv-theme-trigger')
+    renderer.evaluate("document.querySelector('[data-theme=system]').click(); true")
+    renderer.wait("window.vaultApp.themeState().then(state => state.source === 'system')")
     # Observe external navigation through the real IPC handler without launching a browser.
     main.evaluate("globalThis.__pvExternalUrls = []; globalThis.__pvElectron.shell.openExternal = async url => {globalThis.__pvExternalUrls.push(url);}; true")
     repository_url = json.loads((app_root / 'package.json').read_text(encoding='utf-8'))['repository']['url'].removesuffix('.git')
@@ -195,10 +245,19 @@ try:
     # Update UI uses synthetic states and a mocked installer. Test mode has no network.
     assert renderer.evaluate('window.vaultApp.updateState()')['status'] == 'disabled'
     capture(main, 'readme-overview.png')
+    renderer.evaluate("document.querySelector('.pv-main').scrollTop = 48; true")
+    assert not renderer.evaluate("document.querySelector('.pv-main').classList.contains('pv-main-scrolled')")
+    renderer.evaluate("document.querySelector('.pv-main').scrollTop = 121; true")
+    renderer.wait("document.querySelector('.pv-main').classList.contains('pv-main-scrolled')")
+    assert renderer.evaluate("new Promise(resolve => setTimeout(() => resolve(document.querySelector('.pv-main').classList.contains('pv-main-scrolled')), 200))")
+    renderer.evaluate("document.querySelector('.pv-main').scrollTop = 50; true")
+    assert renderer.evaluate("document.querySelector('.pv-main').classList.contains('pv-main-scrolled')")
     renderer.evaluate("document.querySelector('.pv-main').scrollTop = 500; true")
     renderer.wait("document.querySelector('.pv-main').classList.contains('pv-main-scrolled')")
-    assert renderer.evaluate("(() => { const heading=document.querySelector('#pv-library > .pv-heading'), pane=document.querySelector('.pv-main'); return Math.abs(heading.getBoundingClientRect().top-pane.getBoundingClientRect().top)<2 && getComputedStyle(document.getElementById('pv-title')).fontSize==='16px'; })()")
+    assert renderer.evaluate("(() => { const header=document.querySelector('.pv-library-header'), pane=document.querySelector('.pv-main'), actions=document.getElementById('pv-rename').getBoundingClientRect(), title=document.getElementById('pv-title').getBoundingClientRect(); return Math.abs(header.getBoundingClientRect().top-pane.getBoundingClientRect().top)<2 && getComputedStyle(document.getElementById('pv-title')).fontSize==='16px' && actions.top>=pane.getBoundingClientRect().top && actions.bottom<=header.getBoundingClientRect().bottom && Math.abs(actions.top-title.top)<45; })()")
+    capture(main, 'sticky-library-actions.png')
     renderer.evaluate("document.querySelector('.pv-main').scrollTop = 0; true")
+    renderer.wait("!document.querySelector('.pv-main').classList.contains('pv-main-scrolled')")
     select_record(renderer, 'environment')
     assert renderer.evaluate("Array.from(document.querySelectorAll('#pv-content .pv-env-group')).map(node => node.dataset.envSection)") == ['', 'app', 'database', 'redis', 'storage']
     capture(main, 'readme-env.png')
@@ -206,6 +265,15 @@ try:
     capture(main, 'readme-json.png')
     select_record(renderer, 'accounts')
     capture(main, 'readme-txt.png')
+    renderer.evaluate("document.querySelector('#pv-content .pv-text').textContent = Array(180).fill('长文本预览示例').join('\\n'); true")
+    renderer.evaluate("document.querySelector('.pv-main').scrollTop = 400; true")
+    renderer.wait("document.querySelector('.pv-main').classList.contains('pv-main-scrolled')")
+    assert renderer.evaluate("(() => { const header=document.querySelector('.pv-library-header').getBoundingClientRect(), action=document.getElementById('pv-copy').getBoundingClientRect(); return action.top>=header.top && action.bottom<=header.bottom; })()")
+    main.evaluate("globalThis.__pvLibrarySize = globalThis.__pvElectron.BrowserWindow.getAllWindows()[0].getSize(); globalThis.__pvElectron.BrowserWindow.getAllWindows()[0].setSize(760, 600); true")
+    renderer.wait("innerWidth <= 760")
+    assert renderer.evaluate("(() => { const pane=document.querySelector('.pv-main'), header=document.querySelector('.pv-library-header').getBoundingClientRect(); return pane.scrollWidth<=pane.clientWidth && ['pv-rename','pv-edit','pv-delete','pv-reveal','pv-copy','pv-import-open','pv-export-open'].every(id => { const r=document.getElementById(id).getBoundingClientRect(); return r.left>=header.left && r.right<=header.right && r.top>=header.top && r.bottom<=header.bottom; }); })()")
+    capture(main, 'sticky-library-actions-narrow.png')
+    main.evaluate("globalThis.__pvElectron.BrowserWindow.getAllWindows()[0].setSize(...globalThis.__pvLibrarySize); true")
     select_record(renderer, 'guide')
     main.evaluate("""(() => {
       const ipc = globalThis.__pvElectron.ipcMain;
@@ -244,6 +312,9 @@ try:
     renderer.wait("document.getElementById('pv-update-dialog').open")
     assert renderer.evaluate("document.activeElement.id") == 'pv-update-cancel'
     capture(main, 'update-confirmation.png')
+    click_outside_overlay(renderer, 'pv-update-dialog')
+    assert renderer.evaluate("document.getElementById('pv-update-dialog').open")
+    assert main.evaluate('globalThis.__pvInstallCalls') == 0
     click(renderer, 'pv-update-cancel')
     assert main.evaluate('globalThis.__pvInstallCalls') == 0
     click(renderer, 'pv-import-open')
@@ -307,6 +378,9 @@ try:
     renderer.wait("document.getElementById('pv-project-popup').matches(':popover-open')")
     assert renderer.evaluate("document.querySelectorAll('#pv-project-listbox [role=option]').length") == 2
     assert renderer.evaluate("document.querySelector('#pv-project-listbox [aria-selected=true]').dataset.value") == 'example'
+    click_outside_overlay(renderer, 'pv-project-popup')
+    assert renderer.evaluate("document.getElementById('pv-project-popup').matches(':popover-open')")
+    renderer.evaluate("document.querySelector('#pv-project-popup input').focus(); true")
     capture(main, 'custom-project-selector.png')
     main.evaluate("globalThis.__pvPreviousTheme = globalThis.__pvElectron.nativeTheme.themeSource; globalThis.__pvElectron.nativeTheme.themeSource = 'dark'; true")
     capture(main, 'custom-project-selector-dark.png')
@@ -430,6 +504,8 @@ try:
     click(renderer, 'pv-export-open')
     click(renderer, 'pv-export-format-trigger')
     renderer.wait("document.getElementById('pv-export-format-popup').matches(':popover-open')")
+    click_outside_overlay(renderer, 'pv-export-format-popup')
+    assert renderer.evaluate("document.getElementById('pv-export-format-popup').matches(':popover-open')")
     renderer.evaluate("document.querySelector('#pv-export-format-listbox [data-value=json]').click(); true")
     assert renderer.evaluate("document.getElementById('pv-export-format').value") == 'json'
     click(renderer, 'pv-export-copy')
@@ -585,6 +661,8 @@ try:
     assert renderer.evaluate("document.getElementById('pv-rename-input').selectionEnd") == len('config')
     capture(main, 'rename-dialog.png')
     set_value(renderer, 'pv-rename-input', '取消的修改', 'input')
+    click_outside_overlay(renderer, 'pv-rename-dialog')
+    assert renderer.evaluate("document.getElementById('pv-rename-dialog').open && document.getElementById('pv-rename-input').value === '取消的修改'")
     for _ in range(6):
         press_key(renderer, 'Tab', 'Tab', 9)
         assert renderer.evaluate("Boolean(document.activeElement.closest('#pv-rename-dialog'))")
@@ -667,11 +745,17 @@ try:
     main.wait("globalThis.__pvElectron.BrowserWindow.getAllWindows().length === 1 && !globalThis.__pvElectron.BrowserWindow.getAllWindows()[0].isVisible()")
     main.evaluate("globalThis.__pvElectron.app.emit('second-instance'); true")
     main.wait("globalThis.__pvElectron.BrowserWindow.getAllWindows()[0].isVisible()")
+    click(renderer, 'pv-theme-trigger')
+    renderer.evaluate("document.querySelector('[data-theme=dark]').click(); true")
+    renderer.wait("window.vaultApp.themeState().then(state => state.source === 'dark')")
 finally:
     stop_app(process, main, renderer, log)
 
 process, main, renderer, log = start_app('restart')
 try:
+    assert renderer.evaluate("window.vaultApp.themeState()")['source'] == 'dark'
+    assert renderer.evaluate("matchMedia('(prefers-color-scheme: dark)').matches")
+    renderer.evaluate("window.vaultApp.setTheme('system')")
     loaded = renderer.evaluate('window.vaultApp.load()')['store']
     assert loaded == renamed_store
     assert len([record for record in loaded['records'] if record['project'] == project_id]) == 4
@@ -730,6 +814,10 @@ try:
     assert '2 份资料' in renderer.evaluate("document.getElementById('pv-confirm-scope').textContent")
     capture(main, 'custom-delete-confirmation.png')
     assert renderer.evaluate("getComputedStyle(document.getElementById('pv-confirm-dialog'), '::backdrop').backgroundColor !== 'rgba(0, 0, 0, 0)'")
+    assert renderer.evaluate("Array.from(document.querySelectorAll('dialog.pv-dialog')).every(dialog => dialog.getAttribute('closedby') === 'closerequest')")
+    click_outside_overlay(renderer, 'pv-confirm-dialog')
+    assert renderer.evaluate("document.getElementById('pv-confirm-dialog').open")
+    assert (data_root / 'vault.dat').read_bytes() == before_cancel
     main.evaluate("globalThis.__pvOriginalSize = globalThis.__pvElectron.BrowserWindow.getAllWindows()[0].getSize(); globalThis.__pvElectron.BrowserWindow.getAllWindows()[0].setSize(760,600); true")
     capture(main, 'custom-delete-small-window.png')
     assert renderer.evaluate("(() => { const rect=document.getElementById('pv-confirm-dialog').getBoundingClientRect(); return rect.left>=0 && rect.top>=0 && rect.right<=innerWidth && rect.bottom<=innerHeight; })()")
@@ -883,7 +971,9 @@ summary['checks'] += ['native menu removed and Alt does not reveal it', 'Ctrl+O 
 summary['checks'] += ['update checking icon animates continuously and timeout restores button', 'updates disabled in isolated test mode', 'manual check result', 'update download progress and dismissal', 'ready notification reappears when download finishes', 'install requires custom confirmation and safe cancel/Escape', 'unsaved drafts block update installation', 'dismissed update reopens from footer', 'installer IPC only after confirmation', 'installation failure restores usable UI']
 summary['checks'] += ['edit, record/project deletion, file/bundle import and export success toasts', 'canceled export has no success toast and failed deletion shows error', 'official version title and single standard first-run project', 'standard example opens without duplicate writes', 'example import preserves existing projects and documents', 'unsaved drafts block example import', 'standard bundle imports all four exact files', 'repeated example import preserves encrypted bytes', 'modified examples remain intact when a fresh numbered example is imported']
 summary['checks'] += ['repository link opens metadata URL through validated IPC', 'full repository URL appears in a bounded tooltip', 'keyboard Tab and Enter activate the repository link']
-summary['checks'] += ['scrolled document title shrinks and sticks to main pane top', 'long editor keeps save button visible at pane bottom']
+summary['checks'] += ['scrolled title and all document actions share a compact sticky header', 'long TXT keeps controls visible without narrow-window overflow', 'scroll hysteresis prevents short-distance header oscillation', 'long editor keeps save button visible at pane bottom']
+summary['checks'] += ['outside clicks preserve rename, delete, update, project, export and theme popups']
+summary['checks'] += ['light, dark and system theme menu with keyboard controls', 'theme choice changes the actual color scheme and persists across restart']
 summary['checks'] += ['Windows close keeps the window alive and hides it', 'second launch restores the hidden window', 'app quit still exits cleanly']
 summary['checks'] += ['published example ZIP restores every exact original file', 'standalone standard JSON native-file import preserves filenames, formats and content', 'existing and imported example data remain unchanged on restart']
 (check_root / 'results.json').write_text(json.dumps(summary, ensure_ascii=False, indent=2), encoding='utf-8')

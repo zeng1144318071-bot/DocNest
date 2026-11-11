@@ -23,8 +23,20 @@ let updates;
 let installingUpdate = false;
 let quitting = false;
 const fileFormats = new Set(['text', 'env', 'json', 'markdown']);
+const themeSources = new Set(['system', 'light', 'dark']);
 const vaultDirectory = () => app.getPath('userData');
 const vaultFile = () => path.join(vaultDirectory(), 'vault.dat');
+const themeFile = () => path.join(vaultDirectory(), 'appearance.json');
+const themeState = () => ({ source: nativeTheme.themeSource, dark: nativeTheme.shouldUseDarkColors });
+function syncWindowBackground() {
+  if (mainWindow && !mainWindow.isDestroyed()) mainWindow.setBackgroundColor(nativeTheme.shouldUseDarkColors ? '#181e27' : '#ffffff');
+}
+async function restoreTheme() {
+  try {
+    const saved = JSON.parse(await fs.readFile(themeFile(), 'utf8'));
+    nativeTheme.themeSource = themeSources.has(saved.source) ? saved.source : 'system';
+  } catch (_) { nativeTheme.themeSource = 'system'; }
+}
 function showMainWindow() {
   if (!mainWindow || mainWindow.isDestroyed()) return;
   if (mainWindow.isMinimized()) mainWindow.restore();
@@ -81,6 +93,25 @@ function safeFilename(value) {
 }
 
 app.whenReady().then(async () => {
+  await restoreTheme();
+  nativeTheme.on('updated', syncWindowBackground);
+  ipcMain.handle('theme:state', event => { requireRenderer(event); return themeState(); });
+  ipcMain.handle('theme:set', async (event, source) => {
+    requireRenderer(event);
+    if (!themeSources.has(source)) throw new Error('外观模式无效。');
+    const temporary = themeFile() + '.next';
+    try {
+      await fs.mkdir(vaultDirectory(), { recursive: true });
+      await fs.writeFile(temporary, JSON.stringify({ source }) + '\n', 'utf8');
+      await fs.rename(temporary, themeFile());
+    } catch (_) {
+      await fs.rm(temporary, { force: true }).catch(() => {});
+      throw new Error('外观设置保存失败。');
+    }
+    nativeTheme.themeSource = source;
+    syncWindowBackground();
+    return themeState();
+  });
   ipcMain.handle('vault:load', async event => {
     requireRenderer(event);
     return { store: await readVault(), version: app.getVersion(), directory: vaultDirectory(), platform: process.platform, protection: process.platform === 'darwin' ? 'macOS 钥匙串加密' : 'Windows 账户加密' };

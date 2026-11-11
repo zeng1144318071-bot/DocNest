@@ -1,4 +1,5 @@
 import { createRenameDialog } from './rename.js';
+import { hideMenus, showMenu } from './popovers.js';
 
 export function createControls(root, { projectCount, refreshIcons }) {
   const byId = id => root.querySelector('#' + id);
@@ -124,7 +125,7 @@ export function createControls(root, { projectCount, refreshIcons }) {
     closeSelector();
     if (control.search) control.search.value = '';
     fillOptions(control);
-    control.popup.showPopover(); openSelector = control;
+    showMenu(root, control.popup); openSelector = control;
     control.trigger.setAttribute('aria-expanded', 'true');
     positionSelector(control);
     if (control.search && !keyboard) control.search.focus();
@@ -141,7 +142,7 @@ export function createControls(root, { projectCount, refreshIcons }) {
     const text = node('span', 'pv-select-value'); trigger.append(text, icon('chevron-down'));
     select.hidden = true; select.tabIndex = -1; select.setAttribute('aria-hidden', 'true'); select.after(trigger);
     if (label) label.htmlFor = trigger.id;
-    const popup = node('div', 'pv-select-popover'); popup.id = select.id + '-popup'; popup.setAttribute('popover', 'auto');
+    const popup = node('div', 'pv-select-popover'); popup.id = select.id + '-popup'; popup.setAttribute('popover', 'manual');
     trigger.setAttribute('aria-controls', select.id + '-listbox');
     const isProject = select.id === 'pv-project';
     popup.append(node('div', 'pv-select-heading', isProject ? '切换项目' : labelName));
@@ -179,6 +180,11 @@ export function createControls(root, { projectCount, refreshIcons }) {
     });
     select.addEventListener('change', sync);
   }
+  root.addEventListener('keydown', event => {
+    if (event.key === 'Escape' && openSelector?.popup.matches(':popover-open') && !openSelector.popup.contains(event.target)) {
+      event.preventDefault(); closeSelector(true);
+    }
+  });
   function sync() {
     for (const button of root.querySelectorAll('button[data-action-icon]')) setAction(button, button.dataset.actionIcon, button.dataset.actionLabel || button.getAttribute('aria-label') || button.textContent.trim());
     if (tooltipTrigger && (!tooltipTrigger.isConnected || tooltipTrigger.disabled || !tooltipTrigger.getClientRects().length)) hideTooltip();
@@ -300,17 +306,12 @@ export function createControls(root, { projectCount, refreshIcons }) {
     const current = controls.indexOf(document.activeElement);
     event.preventDefault(); controls[(current + (event.shiftKey ? -1 : 1) + controls.length) % controls.length]?.focus();
   });
-  dialog.addEventListener('click', event => {
-    if (event.target !== dialog) return;
-    const rect = dialog.getBoundingClientRect();
-    if (event.clientX < rect.left || event.clientX > rect.right || event.clientY < rect.top || event.clientY > rect.bottom) finishConfirmation(false);
-  });
   dialog.addEventListener('close', () => {
     if (!dialog.open) settleConfirmation(dialog.returnValue === 'confirm');
   });
   function confirmDelete({ kind, name, count }) {
     if (pendingConfirmation) return Promise.resolve(false);
-    closeSelector(); hideToast();
+    closeSelector(); hideMenus(root); hideToast();
     const isProject = kind === 'project'; const title = isProject ? '删除项目' : '删除资料';
     byId('pv-confirm-title').textContent = title + '？';
     byId('pv-confirm-label').textContent = isProject ? '项目名称' : '资料名称';
@@ -322,6 +323,6 @@ export function createControls(root, { projectCount, refreshIcons }) {
       dialog.returnValue = ''; dialog.showModal(); byId('pv-confirm-cancel').focus();
     });
   }
-  const renameDocument = createRenameDialog(root, { onOpen: () => { closeSelector(); hideTooltip(); hideToast(); } });
+  const renameDocument = createRenameDialog(root, { onOpen: () => { closeSelector(); hideMenus(root); hideTooltip(); hideToast(); } });
   return { sync, toast, markCopied, resetCopied, confirmDelete, setAction, renameDocument };
 }

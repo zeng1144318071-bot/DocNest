@@ -5,6 +5,7 @@ import { createControls } from './controls.js';
 import { repository } from '../package.json';
 import { EXAMPLE_PROJECT_ID, createExampleStore, planExampleImport } from '../examples/catalog.cjs';
 import { createUpdateControls } from './updates.js';
+import { createThemeControls } from './theme.js';
 import { detectContentFormat, formatFromFilename, maskEnv, splitEnvSections } from './formats.js';
 globalThis.lucide = { createIcons: options => createIcons({ ...options, icons }) };
 (async () => {
@@ -331,7 +332,10 @@ globalThis.lucide = { createIcons: options => createIcons({ ...options, icons })
     syncMainScroll();
     refreshIcons();
   }
-  function syncMainScroll() { mainPane.classList.toggle('pv-main-scrolled', mainPane.scrollTop > 48); }
+  function syncMainScroll() {
+    if (mainPane.scrollTop > 120) mainPane.classList.add('pv-main-scrolled');
+    else if (mainPane.scrollTop < 12) mainPane.classList.remove('pv-main-scrolled');
+  }
   mainPane.addEventListener('scroll', syncMainScroll, { passive: true });
   function selectRecord(id) { selected = id; route = 'library'; sourceView = false; revealSecrets = false; mainPane.scrollTop = 0; feedback(''); render(); saveChoice(); }
   function setRoute(value) {
@@ -559,6 +563,7 @@ globalThis.lucide = { createIcons: options => createIcons({ ...options, icons })
     event.preventDefault(); api.openExternal(link.href).catch(showFailure);
   });
   render();
+  createThemeControls(root, { api, ui, refreshIcons });
   createUpdateControls(root, { api, ui, refreshIcons, platform, canInstall: () => {
     if (saving || deleting || renaming) return '请等待当前操作完成。';
     if (!storageReady) return '请先成功读取资料库。';

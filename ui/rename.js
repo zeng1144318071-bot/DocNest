@@ -48,11 +48,6 @@ export function createRenameDialog(root, { onOpen }) {
     const current = controls.indexOf(document.activeElement);
     event.preventDefault(); controls[(current + (event.shiftKey ? -1 : 1) + controls.length) % controls.length]?.focus();
   });
-  dialog.addEventListener('click', event => {
-    if (event.target !== dialog) return;
-    const rect = dialog.getBoundingClientRect();
-    if (event.clientX < rect.left || event.clientX > rect.right || event.clientY < rect.top || event.clientY > rect.bottom) finish();
-  });
   form.addEventListener('submit', async event => {
     event.preventDefault();
     if (!pending || busy) return;

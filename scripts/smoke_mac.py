@@ -69,6 +69,11 @@ with tempfile.TemporaryDirectory(prefix='docnest-mac-smoke-') as temporary:
             assert page.evaluate("document.getElementById('pv-save-status').textContent") == 'macOS 钥匙串加密'
             assert not page.evaluate("document.getElementById('pv-check-update').hidden")
             assert page.evaluate("window.vaultApp.load().then(value => value.platform)") == 'darwin'
+            assert page.evaluate("window.vaultApp.themeState().then(value => value.source)") == 'system'
+            assert page.evaluate("window.vaultApp.setTheme('dark').then(value => value.source)") == 'dark'
+            page.wait("matchMedia('(prefers-color-scheme: dark)').matches")
+            assert json.loads((data / 'appearance.json').read_text()) == {'source': 'dark'}
+            assert page.evaluate("window.vaultApp.setTheme('system').then(value => value.source)") == 'system'
             marker = 'MAC_SMOKE_ENCRYPTION_MARKER_12698'
             snapshot = {'schemaVersion': 1, 'projects': {'smoke': '验证项目'}, 'records': [
                 {'id': 'one', 'project': 'smoke', 'name': 'demo.txt', 'format': 'text', 'source': marker}
@@ -79,7 +84,7 @@ with tempfile.TemporaryDirectory(prefix='docnest-mac-smoke-') as temporary:
             assert marker.encode() not in (data / 'vault.dat').read_bytes()
             print(json.dumps({'status': 'passed', 'platform': 'darwin', 'checks': [
                 'packaged universal app launched', 'macOS Keychain encryption', 'encrypted save and load',
-                'macOS interface labels', 'manual DMG update button'
+                'macOS interface labels', 'manual DMG update button', 'persistent theme control'
             ]}, ensure_ascii=False))
         finally:
             if 'page' in locals():

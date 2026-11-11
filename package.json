@@ -1,6 +1,6 @@
 {
   "name": "project-vault-preview",
-  "version": "1.0.10",
+  "version": "1.0.11",
   "description": "DocNest 本地项目资料库：TXT / ENV / JSON / Markdown 导入、预览、转换与加密保存",
   "productName": "DocNest",
   "author": {
