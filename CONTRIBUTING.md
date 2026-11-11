@@ -4,7 +4,7 @@
 
 ## 开发与验证
 
-1. Fork 仓库并创建分支。使用 Node.js 24 在 Windows x64 上执行 `npm ci`。
+1. Fork 仓库并创建分支。使用 Node.js 24 在 Windows x64 或 macOS 上执行 `npm ci`。
 2. 使用 `npm start` 开发。界面位于 `ui/`，存储与 IPC 位于 `main.cjs`，更新调度位于 `updates.cjs`。
 3. 运行 `npm test` 与 `npm audit --omit=dev`。修改窗口、导入导出、加密保存或 IPC 后，执行 `npm run pack`，安装 `requirements-test.txt` 中的测试依赖并执行 `npm run test:windows`。
 4. 在 Pull Request 中描述问题、修改后行为与验证结果；界面改动提供虚构资料截图。
@@ -20,6 +20,7 @@
 3. 创建并推送与版本一致的标签，例如 `git tag v1.0.0`，再执行 `git push origin v1.0.0`。
 4. `Windows release` 工作流在 Windows 上打包并运行窗口测试，再将同一程序目录制作成 NSIS 安装包。
 5. 检查 Release 包含 `DocNest-Setup-版本-x64.exe`、对应 `.exe.blockmap`、`latest.yml`、`DocNest-Examples-版本.zip`、`project-vault-example.json` 和 `SHA256SUMS.txt`，保持正式 Release，不能设为草稿或预发布。示例唯一来源为 `examples/project-vault-example.json`，修改后同时检查首次启动、示例图标和资料包导入。
+   Mac 版另由 `macOS release` 工作流使用同一标签构建通用版 DMG 与 ZIP，验证打包应用的钥匙串加密，再上传 `SHA256SUMS-mac.txt`。当前没有 Apple 签名凭据，Mac 版需手动更新。
 6. 旧版本更新器从最新稳定 Release 读取元数据。发布后验证下载链接和版本描述，不覆盖已经发布的版本文件；修复应递增版本号。
 
 首次发布可使用相同流程在本地构建、验证后上传全部产物。安装包目前未签名；如后续启用代码签名，应同时配置 CI 证书、发布者校验与文档。

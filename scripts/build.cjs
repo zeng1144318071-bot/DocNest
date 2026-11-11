@@ -12,6 +12,7 @@ const { Resvg } = require('@resvg/resvg-js');
   const svg = await fs.readFile(path.join(root, 'build', 'icon.svg'), 'utf8');
   const png = new Resvg(svg, { fitTo: { mode: 'width', value: 256 } }).render().asPng();
   await fs.writeFile(path.join(root, 'dist-ui', 'icon.png'), png);
+  await fs.writeFile(path.join(root, 'build', 'icon.png'), new Resvg(svg, { fitTo: { mode: 'width', value: 1024 } }).render().asPng());
   const { default: pngToIco } = await import('png-to-ico');
   await fs.writeFile(path.join(root, 'build', 'icon.ico'), await pngToIco(png));
   const metadata = JSON.parse(await fs.readFile(path.join(root, 'package.json'), 'utf8'));
@@ -27,5 +28,5 @@ const { Resvg } = require('@resvg/resvg-js');
   }
   await fs.writeFile(path.join(root, 'dist-ui', 'THIRD_PARTY_NOTICES.txt'), notices.join('\n\n'), 'utf8');
   await require('./build-examples.cjs')(root);
-  console.log('Built local UI and Windows application icon.');
+  console.log('Built local UI and desktop application icons.');
 })().catch(error => { console.error(error.message); process.exitCode = 1; });

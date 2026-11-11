@@ -1,6 +1,6 @@
 {
   "name": "project-vault-preview",
-  "version": "1.0.6",
+  "version": "1.0.7",
   "description": "DocNest 本地项目资料库：TXT / ENV / JSON / Markdown 导入、预览、转换与加密保存",
   "productName": "DocNest",
   "author": {
@@ -58,6 +58,16 @@
       ],
       "icon": "build/icon.ico",
       "artifactName": "DocNest-Setup-${version}-${arch}.${ext}"
+    },
+    "mac": {
+      "icon": "build/icon.png",
+      "category": "public.app-category.productivity",
+      "target": [
+        "dmg",
+        "zip"
+      ],
+      "artifactName": "DocNest-${version}-mac-${arch}.${ext}",
+      "identity": null
     },
     "nsis": {
       "oneClick": false,

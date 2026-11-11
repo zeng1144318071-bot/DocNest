@@ -446,7 +446,11 @@ globalThis.lucide = { createIcons: options => createIcons({ ...options, icons })
       for (const key of Object.keys(projects)) delete projects[key]; Object.assign(projects, loaded.store.projects);
       records.splice(0, records.length, ...loaded.store.records);
     }
-    storageReady = true; byId('pv-save-status').textContent = 'Windows 账户加密';
+    storageReady = true;
+    byId('pv-save-status').textContent = loaded.protection;
+    byId('pv-platform-caption').textContent = '正式版 ' + loaded.version + ' · ' + loaded.protection;
+    byId('pv-import-protection').textContent = '保存在本机，使用当前' + (loaded.platform === 'darwin' ? 'macOS 账户和钥匙串' : 'Windows 账户') + '加密';
+    byId('pv-check-update').hidden = loaded.platform === 'darwin';
   } catch (error) { byId('pv-save-status').textContent = '资料库读取失败'; showFailure(error); }
   try {
     const state = JSON.parse(localStorage.getItem('project-vault-ui') || 'null');

@@ -1,0 +1,58 @@
+name: macOS release
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: Existing published version tag
+        required: true
+        type: string
+permissions:
+  contents: write
+jobs:
+  mac:
+    runs-on: macos-15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.tag }}
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Verify version and release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_TAG: ${{ inputs.tag }}
+        run: |
+          test "$RELEASE_TAG" = "v$(node -p 'require("./package.json").version')"
+          test "$(gh release view "$RELEASE_TAG" --json isDraft --jq .isDraft)" = false
+      - run: npm ci
+      - run: npm test
+      - run: npm audit --omit=dev
+      - run: npm run build:renderer
+      - name: Build Intel and Apple Silicon app
+        env:
+          CSC_IDENTITY_AUTO_DISCOVERY: 'false'
+        run: npx --no-install electron-builder --mac --universal --publish never
+      - name: Verify app and encrypted storage
+        run: |
+          for arch in x86_64 arm64; do
+            lipo -archs release/mac-universal/DocNest.app/Contents/MacOS/DocNest | grep -qw "$arch"
+          done
+          python -m pip install -r requirements-test.txt
+          python scripts/smoke_mac.py
+      - name: Upload verified macOS files
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_TAG: ${{ inputs.tag }}
+        run: |
+          version=$(node -p 'require("./package.json").version')
+          dmg="release/DocNest-${version}-mac-universal.dmg"
+          zip="release/DocNest-${version}-mac-universal.zip"
+          test -s "$dmg"
+          test -s "$zip"
+          shasum -a 256 "$dmg" "$zip" | sed 's#  release/#  #' > release/SHA256SUMS-mac.txt
+          gh release upload "$RELEASE_TAG" "$dmg" "$zip" release/SHA256SUMS-mac.txt

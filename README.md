@@ -3,14 +3,15 @@
 <img src="build/icon.svg" width="96" height="96" alt="DocNest 文档归巢 Logo">
 
 [![Windows checks](https://github.com/zeng1144318071-bot/DocNest/actions/workflows/ci.yml/badge.svg)](https://github.com/zeng1144318071-bot/DocNest/actions/workflows/ci.yml)
+[![macOS release](https://github.com/zeng1144318071-bot/DocNest/actions/workflows/mac-release.yml/badge.svg)](https://github.com/zeng1144318071-bot/DocNest/actions/workflows/mac-release.yml)
 [![Release](https://img.shields.io/github/v/release/zeng1144318071-bot/DocNest)](https://github.com/zeng1144318071-bot/DocNest/releases/latest)
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 
 把散落在记事本里的项目说明、服务器资料和环境配置整理到一个本地桌面工具中。
 
-DocNest 支持 **TXT、ENV、JSON、Markdown** 四种格式的导入、预览、编辑与转换，按项目集中查看，并使用 Windows 当前账户的 DPAPI 加密保存。应用每 5 分钟检查 GitHub 新版本，安装包下载完成后提示安装。
+DocNest 支持 **TXT、ENV、JSON、Markdown** 四种格式的导入、预览、编辑与转换，按项目集中查看。Windows 使用 DPAPI 加密，macOS 使用钥匙串加密；Windows 安装版每 5 分钟检查 GitHub 新版本。
 
-**[下载 Windows 安装包](https://github.com/zeng1144318071-bot/DocNest/releases/latest) · [标准示例](examples/README.md) · [版本记录](CHANGELOG.md) · [参与开发](CONTRIBUTING.md)**
+**[下载 Windows / macOS 安装包](https://github.com/zeng1144318071-bot/DocNest/releases/latest) · [标准示例](examples/README.md) · [版本记录](CHANGELOG.md) · [参与开发](CONTRIBUTING.md)**
 
 ![DocNest：项目与 Markdown 预览，全部为虚构演示资料](docs/images/overview.png)
 
@@ -52,6 +53,8 @@ DocNest 支持 **TXT、ENV、JSON、Markdown** 四种格式的导入、预览、
 
 适用于 **Windows 10 / 11 x64**。从 [Releases](https://github.com/zeng1144318071-bot/DocNest/releases/latest) 下载 `DocNest-Setup-版本号-x64.exe`，安装向导提供目录输入框和“浏览”按钮，可选择自定义安装目录；从应用内更新时也显示该页面，并默认带出原安装位置。选择的是最终安装目录，例如 `D:\Apps\DocNest`。程序自带运行环境，无需安装 Node.js。安装程序创建桌面和开始菜单快捷方式；旧版可直接覆盖升级，卸载时保留用户资料。
 
+适用于 **macOS Intel 与 Apple Silicon** 的通用版：下载 `DocNest-版本号-mac-universal.dmg`，打开后将 DocNest 拖入“应用程序”。同时提供 `.zip` 便于手动安装。当前 Mac 发行版没有 Apple Developer ID 签名和公证，首次启动可能被 Gatekeeper 拦截；确认文件来自本仓库后，可按 [Apple 官方说明](https://support.apple.com/en-us/102445) 在“系统设置 → 隐私与安全性”选择“仍要打开”。Mac 版暂不提供应用内自动更新，新版需手动下载替换。未签名的更新可能再次请求钥匙串访问权限。
+
 首次启动显示一个“标准示例项目”，包含 TXT、ENV、JSON、MD 四份完整资料。示例使用虚构账号、`example.com` 域名和文档专用 IP，可自由修改或删除。已有资料升级后保留原样，可点击左侧“项目”标题旁的书本图标导入独立示例；内容完整的示例已存在时直接打开，已修改的示例保留并另建带编号的项目。按钮悬停或键盘聚焦时会显示名称。
 
 1. 在左侧选择或新建项目，点击右上角导入图标，选择文件或直接粘贴内容。
@@ -74,7 +77,7 @@ DocNest 支持 **TXT、ENV、JSON、Markdown** 四种格式的导入、预览、
 
 ## 更新方式
 
-从 **0.2.0** 起，正式安装版启动约 1.5 秒后检查 GitHub 最新稳定版，之后每 **300000 毫秒（5 分钟）**检查一次；底部刷新图标可手动检查。开发模式和自动化测试关闭更新联网。
+Windows 正式安装版从 **0.2.0** 起，启动约 1.5 秒后检查 GitHub 最新稳定版，之后每 **300000 毫秒（5 分钟）**检查一次；底部刷新图标可手动检查。开发模式、自动化测试和 macOS 版关闭更新联网；Mac 用户从 Releases 手动安装新版。
 
 - 发现较新版本后，通过 `electron-updater` 自动下载 Windows 安装包，显示下载进度并校验更新文件。
 - 下载完成后显示持久提示。关闭提示后，底部更新图标仍可重新打开。普通退出不会自动安装。
@@ -90,21 +93,24 @@ DocNest 支持 **TXT、ENV、JSON、Markdown** 四种格式的导入、预览、
 
 ## 数据与隐私
 
-资料通过 Electron `safeStorage` 调用 Windows DPAPI 加密后保存在以下目录。为兼容旧版，DocNest 继续使用原应用标识、更新缓存和资料目录；更换安装目录不会移动加密资料。
+资料通过 Electron `safeStorage` 调用系统加密服务保存。Windows 使用 DPAPI，macOS 使用钥匙串。为兼容旧版，Windows 继续使用原应用标识、更新缓存和资料目录；更换安装目录不会移动加密资料。
 
 ```text
 %APPDATA%\ProjectVaultPreview\vault.dat
 %APPDATA%\ProjectVaultPreview\vault.prev.dat
 %APPDATA%\ProjectVaultPreview\vault.before-update.dat  # 安装应用内更新前生成
+~/Library/Application Support/ProjectVaultPreview/vault.dat  # macOS
 ```
 
 底部文件夹图标可打开数据目录。保存采用临时文件替换，并保留上一版加密副本。仓库、安装包和示例不包含个人资料；应用没有资料上传、云同步或遥测功能。更新检查和下载会连接 GitHub 及其文件分发服务，请求不包含资料正文、账号或配置值。点击 Markdown 网页链接时，由默认浏览器打开。
 
 DPAPI 依赖创建资料的 Windows 账户，尚无独立主密码或闲置自动锁定。能使用当前已登录账户的程序或人员仍可能读取资料。直接复制加密文件到其他账户或重装后的系统通常无法解密；迁移前应在原账户导出项目 JSON，并按需要勾选“包含敏感字段”。
 
+macOS 钥匙串依赖创建资料的 Mac 账户。跨设备迁移时，请先从原设备导出项目 JSON；仅复制加密文件可能无法解密。
+
 预览和导出默认隐藏常见密码、令牌、密钥字段，识别基于字段名称，无法保证识别任意自由文本中的所有秘密。导出的 TXT / ENV / JSON / MD 是普通明文文件，分享前请自行检查。
 
-当前安装包未做代码签名，Windows 可能显示未知发布者或 SmartScreen 提示。Release 提供 SHA256 校验文件；更新器另外验证更新元数据中的文件校验值。这些校验不能替代发布者签名。
+当前 Windows 和 macOS 安装包均未做发布者代码签名；Mac 包也未做 Apple 公证。Release 分别提供 SHA256 校验文件；Windows 更新器另外验证更新元数据中的文件校验值。这些校验不能替代发布者签名。
 
 ## 格式转换规则
 

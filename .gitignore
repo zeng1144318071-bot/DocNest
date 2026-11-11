@@ -2,6 +2,7 @@ node_modules/
 dist-ui/
 release/
 build/icon.ico
+build/icon.png
 __pycache__/
 *.pyc
 *.log

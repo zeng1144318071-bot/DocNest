@@ -12,7 +12,7 @@ if (testMode && process.env.PROJECT_VAULT_TEST_DATA_DIR) {
   app.setPath('userData', path.join(app.getPath('appData'), 'ProjectVaultPreview'));
 }
 app.setName('DocNest');
-app.setAppUserModelId('local.projectvault.preview');
+if (process.platform === 'win32') app.setAppUserModelId('local.projectvault.preview');
 if (!testMode && !app.requestSingleInstanceLock()) app.exit(0);
 let mainWindow;
 let readableVault = false;
@@ -44,7 +44,7 @@ function validateStore(value) {
   return { schemaVersion: 1, projects: Object.fromEntries(projectKeys.map(key => [key, value.projects[key]])), records };
 }
 async function readVault() {
-  if (!safeStorage.isEncryptionAvailable()) throw new Error('Windows 加密服务不可用，暂时无法读取或保存资料。');
+  if (!safeStorage.isEncryptionAvailable()) throw new Error('系统加密服务不可用，暂时无法读取或保存资料。');
   await fs.mkdir(vaultDirectory(), { recursive: true });
   let encrypted;
   try { encrypted = await fs.readFile(vaultFile()); }
@@ -54,7 +54,7 @@ async function readVault() {
     readableVault = true;
     return store;
   } catch (_) {
-    throw new Error('资料库无法解密或已损坏。请使用创建它的 Windows 账户，并保留 vault.dat 和 vault.prev.dat 文件。');
+    throw new Error('资料库无法解密或已损坏。请使用创建它的系统账户，并保留 vault.dat 和 vault.prev.dat 文件。');
   }
 }
 async function writeVault(store) {
@@ -75,7 +75,7 @@ function safeFilename(value) {
 app.whenReady().then(async () => {
   ipcMain.handle('vault:load', async event => {
     requireRenderer(event);
-    return { store: await readVault(), version: app.getVersion(), directory: vaultDirectory(), protection: 'Windows DPAPI' };
+    return { store: await readVault(), version: app.getVersion(), directory: vaultDirectory(), platform: process.platform, protection: process.platform === 'darwin' ? 'macOS 钥匙串加密' : 'Windows 账户加密' };
   });
   ipcMain.handle('vault:save', async (event, value) => {
     requireRenderer(event);
@@ -147,7 +147,10 @@ app.whenReady().then(async () => {
     await shell.openExternal(url.href);
   });
 
-  Menu.setApplicationMenu(null);
+  Menu.setApplicationMenu(process.platform === 'darwin' ? Menu.buildFromTemplate([
+    { label: 'DocNest', submenu: [{ role: 'about' }, { type: 'separator' }, { role: 'hide' }, { role: 'hideOthers' }, { role: 'unhide' }, { type: 'separator' }, { role: 'quit' }] },
+    { role: 'editMenu' }, { role: 'windowMenu' }
+  ]) : null);
   mainWindow = new BrowserWindow({ title: 'DocNest', width: 1220, height: 900, minWidth: 760, minHeight: 600, show: false, backgroundColor: nativeTheme.shouldUseDarkColors ? '#181e27' : '#ffffff', icon: path.join(__dirname, 'dist-ui', 'icon.png'), webPreferences: { preload: path.join(__dirname, 'preload.cjs'), contextIsolation: true, nodeIntegration: false, sandbox: true, spellcheck: false, devTools: testMode || !app.isPackaged } });
   mainWindow.webContents.on('before-input-event', (event, input) => {
     if (input.type !== 'keyDown' || input.isComposing || input.alt) return;
