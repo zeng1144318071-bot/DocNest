@@ -10,7 +10,9 @@ $target = 'D:\DocNest'
 $programs = Join-Path $env:APPDATA 'Microsoft\Windows\Start Menu\Programs'
 
 function Get-DocNestUninstallEntry {
-  @(Get-ChildItem 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Uninstall' | Get-ItemProperty | Where-Object { $_.DisplayName -like 'DocNest*' })
+  $uninstallRoot = 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Uninstall'
+  if (-not (Test-Path $uninstallRoot)) { return }
+  Get-ChildItem $uninstallRoot | Get-ItemProperty | Where-Object { $_.DisplayName -like 'DocNest*' }
 }
 
 $createdDrive = $false
@@ -28,7 +30,7 @@ try {
   $install = Start-Process -FilePath $installer -ArgumentList '/S', '/currentuser' -Wait -PassThru
   if ($install.ExitCode -ne 0) { throw "Silent install failed: $($install.ExitCode)" }
 
-  $entries = Get-DocNestUninstallEntry
+  $entries = @(Get-DocNestUninstallEntry)
   if ($entries.Count -ne 1) { throw 'Installer did not register exactly one uninstall entry.' }
   if (-not (Test-Path (Join-Path $target 'DocNest.exe'))) { throw 'Installer did not use D:\DocNest.' }
   $shortcuts = @(Get-ChildItem $programs -Recurse -Filter 'Uninstall DocNest.lnk')
