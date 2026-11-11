@@ -1,7 +1,8 @@
-const { app, BrowserWindow, ipcMain, dialog, safeStorage, shell, Menu, Tray, nativeImage, nativeTheme } = require('electron');
+const { app, BrowserWindow, ipcMain, dialog, safeStorage, shell, session, Menu, Tray, nativeImage, nativeTheme } = require('electron');
 const fs = require('node:fs/promises');
 const path = require('node:path');
 const { createUpdates } = require('./updates.cjs');
+const { createMacUpdates } = require('./mac-updates.cjs');
 
 const testMode = process.env.PROJECT_VAULT_TEST_MODE === '1';
 if (testMode && process.env.PROJECT_VAULT_TEST_DATA_DIR) {
@@ -120,15 +121,25 @@ app.whenReady().then(async () => {
   });
   ipcMain.handle('app:data-directory', event => { requireRenderer(event); return shell.openPath(vaultDirectory()); });
   const updateEnabled = app.isPackaged && !testMode && process.platform === 'win32';
+  const macUpdateEnabled = app.isPackaged && !testMode && process.platform === 'darwin';
+  const repositoryUrl = new URL(require('./package.json').repository.url);
+  const [owner, repo] = repositoryUrl.pathname.replace(/\.git$/, '').split('/').filter(Boolean);
+  if (repositoryUrl.hostname !== 'github.com' || !owner || !repo) throw new Error('更新仓库地址无效。');
+  const onUpdateState = state => { if (mainWindow && !mainWindow.isDestroyed()) mainWindow.webContents.send('update:state', state); };
   const createUpdater = () => {
     const updater = new (require('electron-updater').NsisUpdater)();
     updater.logger = null;
     return updater;
   };
   const updater = updateEnabled ? createUpdater() : null;
-  updates = createUpdates({
+  updates = macUpdateEnabled ? createMacUpdates({
+    version: app.getVersion(), owner, repo,
+    downloadDirectory: app.getPath('downloads'),
+    fetchResource: (...args) => session.fromPartition('docnest-updates').fetch(...args),
+    openFile: filename => shell.openPath(filename), onState: onUpdateState
+  }) : createUpdates({
     updater, createUpdater, enabled: updateEnabled, version: app.getVersion(),
-    onState: state => { if (mainWindow && !mainWindow.isDestroyed()) mainWindow.webContents.send('update:state', state); },
+    onState: onUpdateState,
     beforeInstall: async () => {
       await saveQueue;
       if (!readableVault) throw new Error('请先成功读取资料库，再安装更新。');

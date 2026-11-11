@@ -67,7 +67,7 @@ with tempfile.TemporaryDirectory(prefix='docnest-mac-smoke-') as temporary:
             page = Page(port)
             page.wait("document.body?.dataset.appReady === 'true'")
             assert page.evaluate("document.getElementById('pv-save-status').textContent") == 'macOS 钥匙串加密'
-            assert page.evaluate("document.getElementById('pv-check-update').hidden")
+            assert not page.evaluate("document.getElementById('pv-check-update').hidden")
             assert page.evaluate("window.vaultApp.load().then(value => value.platform)") == 'darwin'
             marker = 'MAC_SMOKE_ENCRYPTION_MARKER_12698'
             snapshot = {'schemaVersion': 1, 'projects': {'smoke': '验证项目'}, 'records': [
@@ -79,7 +79,7 @@ with tempfile.TemporaryDirectory(prefix='docnest-mac-smoke-') as temporary:
             assert marker.encode() not in (data / 'vault.dat').read_bytes()
             print(json.dumps({'status': 'passed', 'platform': 'darwin', 'checks': [
                 'packaged universal app launched', 'macOS Keychain encryption', 'encrypted save and load',
-                'macOS interface labels', 'manual update mode'
+                'macOS interface labels', 'manual DMG update button'
             ]}, ensure_ascii=False))
         finally:
             if 'page' in locals():

@@ -1,8 +1,9 @@
-export function createUpdateControls(root, { api, ui, refreshIcons, canInstall }) {
+export function createUpdateControls(root, { api, ui, refreshIcons, canInstall, platform }) {
   const byId = id => root.querySelector('#' + id);
   const button = byId('pv-check-update');
   const card = byId('pv-update-card');
   const dialog = byId('pv-update-dialog');
+  const mac = platform === 'darwin';
   let state = { status: 'idle', revision: -1 };
   let dismissed = '';
   let manual = false;
@@ -15,8 +16,8 @@ export function createUpdateControls(root, { api, ui, refreshIcons, canInstall }
     const visible = (ready || downloading || state.status === 'installing') && dismissed !== key;
     card.hidden = !visible;
     card.dataset.status = state.status;
-    byId('pv-update-title').textContent = ready ? 'v' + state.latestVersion + ' 已准备好' : state.status === 'installing' ? '正在打开安装程序…' : '正在下载 v' + state.latestVersion;
-    byId('pv-update-detail').textContent = ready ? '安装后重新打开，已保存的资料会保留。' : state.status === 'installing' ? '请按安装程序提示完成更新。' : '下载完成后提醒你安装，可继续使用。';
+    byId('pv-update-title').textContent = ready ? 'v' + state.latestVersion + (mac ? ' 安装包已下载' : ' 已准备好') : state.status === 'installing' ? '正在打开安装程序…' : '正在下载 v' + state.latestVersion;
+    byId('pv-update-detail').textContent = ready ? (mac ? '安装包已保存到“下载”，打开后拖入“应用程序”即可更新。' : '安装后重新打开，已保存的资料会保留。') : state.status === 'installing' ? '请按安装程序提示完成更新。' : '下载完成后提醒你安装，可继续使用。';
     const progress = byId('pv-update-progress');
     progress.hidden = !downloading;
     progress.value = state.percent || 0;
@@ -24,12 +25,13 @@ export function createUpdateControls(root, { api, ui, refreshIcons, canInstall }
     byId('pv-update-percent').hidden = !downloading;
     byId('pv-update-percent').textContent = Math.floor(state.percent || 0) + '%';
     byId('pv-update-install').hidden = !ready;
+    ui.setAction(byId('pv-update-install'), mac ? 'folder-open' : 'download', mac ? '打开安装包' : '安装更新');
     byId('pv-update-dismiss').disabled = installing || state.status === 'installing';
     button.disabled = installing || ['checking', 'installing'].includes(state.status);
     button.dataset.updateReady = String(ready);
     button.dataset.checking = String(state.status === 'checking');
     button.setAttribute('aria-busy', String(state.status === 'checking'));
-    ui.setAction(button, ready ? 'circle-arrow-up' : state.status === 'checking' ? 'loader-circle' : 'refresh-cw', ready ? '安装新版本 v' + state.latestVersion : state.status === 'checking' ? '正在检查更新' : '检查更新');
+    ui.setAction(button, ready ? (mac ? 'folder-open' : 'circle-arrow-up') : state.status === 'checking' ? 'loader-circle' : 'refresh-cw', ready ? (mac ? '打开已下载的安装包 v' : '安装新版本 v') + state.latestVersion : state.status === 'checking' ? '正在检查更新' : '检查更新');
     refreshIcons();
   }
   function accept(next) {
@@ -51,8 +53,19 @@ export function createUpdateControls(root, { api, ui, refreshIcons, canInstall }
     if (issue) { ui.toast('暂时无法安装', issue, 'error'); return true; }
     return false;
   }
+  async function openMacDownload() {
+    if (installing) return;
+    installing = true; render();
+    try {
+      await api.installUpdate();
+      ui.toast('安装包已打开', '将 DocNest 拖入“应用程序”以完成更新。');
+    } catch (error) { ui.toast('无法打开安装包', String(error.message || '请到“下载”文件夹手动打开。'), 'error'); }
+    finally { installing = false; render(); }
+  }
   function openInstall() {
-    if (state.status !== 'downloaded' || installing || dialog.open || installationIssue()) return;
+    if (state.status !== 'downloaded' || installing) return;
+    if (mac) { void openMacDownload(); return; }
+    if (dialog.open || installationIssue()) return;
     if (root.querySelector('dialog[open]')) return;
     returnFocus = document.activeElement;
     byId('pv-update-confirm-version').textContent = '即将安装 v' + state.latestVersion + '。应用会关闭并重新打开，安装前自动备份已保存的加密资料。';

@@ -18,6 +18,7 @@ globalThis.lucide = { createIcons: options => createIcons({ ...options, icons })
   const repositoryUrl = repository.url.replace(/\.git$/, '');
   byId('pv-github').dataset.actionLabel = 'GitHub 仓库 · ' + repositoryUrl;
   let storageReady = false;
+  let platform = 'win32';
   let editingId = null;
   let saving = false;
   let deleting = false;
@@ -452,10 +453,10 @@ globalThis.lucide = { createIcons: options => createIcons({ ...options, icons })
       records.splice(0, records.length, ...loaded.store.records);
     }
     storageReady = true;
+    platform = loaded.platform;
     byId('pv-save-status').textContent = loaded.protection;
     byId('pv-platform-caption').textContent = '正式版 ' + loaded.version + ' · ' + loaded.protection;
     byId('pv-import-protection').textContent = '保存在本机，使用当前' + (loaded.platform === 'darwin' ? 'macOS 账户和钥匙串' : 'Windows 账户') + '加密';
-    byId('pv-check-update').hidden = loaded.platform === 'darwin';
   } catch (error) { byId('pv-save-status').textContent = '资料库读取失败'; showFailure(error); }
   try {
     const state = JSON.parse(localStorage.getItem('project-vault-ui') || 'null');
@@ -558,7 +559,7 @@ globalThis.lucide = { createIcons: options => createIcons({ ...options, icons })
     event.preventDefault(); api.openExternal(link.href).catch(showFailure);
   });
   render();
-  createUpdateControls(root, { api, ui, refreshIcons, canInstall: () => {
+  createUpdateControls(root, { api, ui, refreshIcons, platform, canInstall: () => {
     if (saving || deleting || renaming) return '请等待当前操作完成。';
     if (!storageReady) return '请先成功读取资料库。';
     if (route === 'import' || !byId('pv-project-create').hidden) return '请先保存或退出当前编辑，再安装更新。';
