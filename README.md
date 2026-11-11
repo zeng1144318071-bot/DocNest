@@ -1,4 +1,4 @@
-# 项目资料库 · Project Vault
+# DocNest
 
 [![Windows checks](https://github.com/zeng1144318071-bot/project-vault-desktop/actions/workflows/ci.yml/badge.svg)](https://github.com/zeng1144318071-bot/project-vault-desktop/actions/workflows/ci.yml)
 [![Release](https://img.shields.io/github/v/release/zeng1144318071-bot/project-vault-desktop)](https://github.com/zeng1144318071-bot/project-vault-desktop/releases/latest)
@@ -6,11 +6,11 @@
 
 把散落在记事本里的项目说明、服务器资料和环境配置整理到一个本地桌面工具中。
 
-项目资料库支持 **TXT、ENV、JSON、Markdown** 四种格式的导入、预览、编辑与转换，按项目集中查看，并使用 Windows 当前账户的 DPAPI 加密保存。应用每 5 分钟检查 GitHub 新版本，安装包下载完成后提示安装。
+DocNest 支持 **TXT、ENV、JSON、Markdown** 四种格式的导入、预览、编辑与转换，按项目集中查看，并使用 Windows 当前账户的 DPAPI 加密保存。应用每 5 分钟检查 GitHub 新版本，安装包下载完成后提示安装。
 
 **[下载 Windows 安装包](https://github.com/zeng1144318071-bot/project-vault-desktop/releases/latest) · [标准示例](examples/README.md) · [版本记录](CHANGELOG.md) · [参与开发](CONTRIBUTING.md)**
 
-![项目资料库：项目与 Markdown 预览，全部为虚构演示资料](docs/images/overview.png)
+![DocNest：项目与 Markdown 预览，全部为虚构演示资料](docs/images/overview.png)
 
 ## 能做什么
 
@@ -30,7 +30,7 @@
 
 ## 安装与使用
 
-适用于 **Windows 10 / 11 x64**。从 [Releases](https://github.com/zeng1144318071-bot/project-vault-desktop/releases/latest) 下载 `ProjectVault-Setup-版本号-x64.exe`，运行后选择安装目录。程序自带运行环境，无需安装 Node.js。安装程序创建桌面和开始菜单快捷方式；旧版可直接覆盖升级，卸载时保留用户资料。
+适用于 **Windows 10 / 11 x64**。从 [Releases](https://github.com/zeng1144318071-bot/project-vault-desktop/releases/latest) 下载 `DocNest-Setup-版本号-x64.exe`，安装向导提供目录输入框和“浏览”按钮，可选择自定义安装目录；从应用内更新时也显示该页面，并默认带出原安装位置。选择的是最终安装目录，例如 `D:\Apps\DocNest`。程序自带运行环境，无需安装 Node.js。安装程序创建桌面和开始菜单快捷方式；旧版可直接覆盖升级，卸载时保留用户资料。
 
 首次启动显示一个“标准示例项目”，包含 TXT、ENV、JSON、MD 四份完整资料。示例使用虚构账号、`example.com` 域名和文档专用 IP，可自由修改或删除。已有资料升级后保留原样，可点击左侧“项目”标题旁的书本图标导入独立示例；内容完整的示例已存在时直接打开，已修改的示例保留并另建带编号的项目。按钮悬停或键盘聚焦时会显示名称。
 
@@ -41,7 +41,7 @@
 
 右下角的外部链接图标可打开本项目的 GitHub 仓库。悬停或通过 Tab 聚焦时显示完整地址，点击后由默认浏览器打开，可查看源码、版本记录或反馈问题。
 
-标准示例也单独提供 [项目 JSON](examples/project-vault-example.json) 和 Release 中的 `ProjectVault-Examples-版本号.zip`。项目 JSON 可一次恢复四份原始资料；ZIP 内含四份原始文件、项目 JSON 和说明，方便测试单文件导入。详细内容见 [示例说明](examples/README.md)。
+标准示例也单独提供 [项目 JSON](examples/project-vault-example.json) 和 Release 中的 `DocNest-Examples-版本号.zip`。项目 JSON 可一次恢复四份原始资料；ZIP 内含四份原始文件、项目 JSON 和说明，方便测试单文件导入。详细内容见 [示例说明](examples/README.md)。
 
 | 快捷键 | 操作 |
 | --- | --- |
@@ -68,7 +68,7 @@
 
 ## 数据与隐私
 
-资料通过 Electron `safeStorage` 调用 Windows DPAPI 加密后保存在：
+资料通过 Electron `safeStorage` 调用 Windows DPAPI 加密后保存在以下目录。为兼容旧版，DocNest 继续使用原应用标识、更新缓存和资料目录；更换安装目录不会移动加密资料。
 
 ```text
 %APPDATA%\ProjectVaultPreview\vault.dat

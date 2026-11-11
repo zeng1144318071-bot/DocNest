@@ -11,7 +11,7 @@ if (testMode && process.env.PROJECT_VAULT_TEST_DATA_DIR) {
 } else {
   app.setPath('userData', path.join(app.getPath('appData'), 'ProjectVaultPreview'));
 }
-app.setName('项目资料库');
+app.setName('DocNest');
 app.setAppUserModelId('local.projectvault.preview');
 if (!testMode && !app.requestSingleInstanceLock()) app.exit(0);
 let mainWindow;
@@ -144,7 +144,7 @@ app.whenReady().then(async () => {
   });
 
   Menu.setApplicationMenu(null);
-  mainWindow = new BrowserWindow({ title: '项目资料库', width: 1220, height: 900, minWidth: 760, minHeight: 600, show: false, backgroundColor: nativeTheme.shouldUseDarkColors ? '#181e27' : '#ffffff', icon: path.join(__dirname, 'dist-ui', 'icon.png'), webPreferences: { preload: path.join(__dirname, 'preload.cjs'), contextIsolation: true, nodeIntegration: false, sandbox: true, spellcheck: false, devTools: testMode || !app.isPackaged } });
+  mainWindow = new BrowserWindow({ title: 'DocNest', width: 1220, height: 900, minWidth: 760, minHeight: 600, show: false, backgroundColor: nativeTheme.shouldUseDarkColors ? '#181e27' : '#ffffff', icon: path.join(__dirname, 'dist-ui', 'icon.png'), webPreferences: { preload: path.join(__dirname, 'preload.cjs'), contextIsolation: true, nodeIntegration: false, sandbox: true, spellcheck: false, devTools: testMode || !app.isPackaged } });
   mainWindow.webContents.on('before-input-event', (event, input) => {
     if (input.type !== 'keyDown' || input.isComposing || input.alt) return;
     const key = input.key.toLowerCase();
@@ -167,7 +167,7 @@ app.whenReady().then(async () => {
   await mainWindow.loadFile(path.join(__dirname, 'dist-ui', 'index.html'));
   updates.start();
 }).catch(async () => {
-  if (!testMode) await dialog.showMessageBox({ type: 'error', title: '启动失败', message: '项目资料库启动失败，请重新安装应用。' });
+  if (!testMode) await dialog.showMessageBox({ type: 'error', title: '启动失败', message: 'DocNest启动失败，请重新安装应用。' });
   app.exit(1);
 });
 app.on('before-quit', event => {

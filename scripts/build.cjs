@@ -15,7 +15,7 @@ const { Resvg } = require('@resvg/resvg-js');
   const { default: pngToIco } = await import('png-to-ico');
   await fs.writeFile(path.join(root, 'build', 'icon.ico'), await pngToIco(png));
   const metadata = JSON.parse(await fs.readFile(path.join(root, 'package.json'), 'utf8'));
-  const notices = ['Third-party notices for Project Vault ' + metadata.version, 'Electron and Chromium notices are distributed beside the executable.'];
+  const notices = ['Third-party notices for DocNest ' + metadata.version, 'Electron and Chromium notices are distributed beside the executable.'];
   const lock = JSON.parse(await fs.readFile(path.join(root, 'package-lock.json'), 'utf8'));
   for (const [location, info] of Object.entries(lock.packages).sort(([a], [b]) => a.localeCompare(b))) {
     if (!location || info.dev || info.link) continue;

@@ -217,7 +217,7 @@ globalThis.lucide = { createIcons: options => createIcons({ ...options, icons })
     byId('pv-copy').disabled = !hasRecords;
     byId('pv-reveal').disabled = !hasRecords;
     if (!hasProject) {
-      byId('pv-breadcrumb-project').textContent = '项目资料库';
+      byId('pv-breadcrumb-project').textContent = 'DocNest';
       byId('pv-breadcrumb-file').textContent = '新建项目';
       byId('pv-title').textContent = '还没有项目';
       byId('pv-subtitle').textContent = '点击左侧“新建项目”，开始整理你的资料。';

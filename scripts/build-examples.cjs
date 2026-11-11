@@ -15,7 +15,7 @@ module.exports = async root => {
   await fs.copyFile(path.join(root, 'examples', 'README.md'), path.join(destination, 'README.md'));
   // Use the same ZIP writer already provided by electron-builder, no new runtime dependency.
   const { archive } = require('app-builder-lib/out/targets/archive');
-  const output = path.join(root, 'release', `ProjectVault-Examples-${version}.zip`);
+  const output = path.join(root, 'release', `DocNest-Examples-${version}.zip`);
   try { await fs.unlink(output); } catch (error) { if (error.code !== 'ENOENT') throw error; }
   await archive('zip', output, destination, { compression: 'maximum' });
 };

@@ -18,13 +18,13 @@ check_root.mkdir(parents=True)
 data_root = check_root / 'user-data'
 export_root = check_root / 'exports'
 export_root.mkdir()
-executable = app_root / 'release' / 'win-unpacked' / '项目资料库.exe'
+executable = app_root / 'release' / 'win-unpacked' / 'DocNest.exe'
 assert executable.exists(), 'Build the Windows app first.'
 update_config = json.loads(subprocess.check_output(['node', '-e', "console.log(JSON.stringify(require('js-yaml').load(require('fs').readFileSync(process.argv[1],'utf8'))))", str(executable.parent / 'resources' / 'app-update.yml')], cwd=app_root, text=True, creationflags=subprocess.CREATE_NO_WINDOW))
 assert update_config == {'provider': 'github', 'owner': 'zeng1144318071-bot', 'repo': 'project-vault-desktop', 'updaterCacheDirName': 'project-vault-preview-updater'}
 standard = json.loads((app_root / 'examples/project-vault-example.json').read_text(encoding='utf-8'))
 assert (app_root / 'release/project-vault-example.json').read_bytes() == (app_root / 'examples/project-vault-example.json').read_bytes()
-with zipfile.ZipFile(app_root / 'release' / f'ProjectVault-Examples-{app_version}.zip') as example_zip:
+with zipfile.ZipFile(app_root / 'release' / f'DocNest-Examples-{app_version}.zip') as example_zip:
     assert example_zip.testzip() is None
     members = {name for name in example_zip.namelist() if not name.endswith('/')}
     assert members == {'examples/' + file['name'] for file in standard['files']} | {'examples/project-vault-example.json', 'examples/README.md'}
@@ -161,7 +161,7 @@ def capture(main, name):
 process, main, renderer, log = start_app('initial')
 try:
     assert main.evaluate("globalThis.__pvElectron.app.getVersion()") == app_version
-    assert main.evaluate("globalThis.__pvElectron.BrowserWindow.getAllWindows()[0].getTitle()") == '项目资料库'
+    assert main.evaluate("globalThis.__pvElectron.BrowserWindow.getAllWindows()[0].getTitle()") == 'DocNest'
     assert renderer.evaluate("document.getElementById('pv-project').options.length") == 1
     assert renderer.evaluate("document.getElementById('pv-project').selectedOptions[0].textContent") == '标准示例项目'
     click(renderer, 'pv-project-example')

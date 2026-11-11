@@ -1,8 +1,8 @@
 {
   "name": "project-vault-preview",
-  "version": "1.0.1",
-  "description": "本地项目资料库：TXT / ENV / JSON / Markdown 导入、预览、转换与加密保存",
-  "productName": "项目资料库",
+  "version": "1.0.2",
+  "description": "DocNest 本地项目资料库：TXT / ENV / JSON / Markdown 导入、预览、转换与加密保存",
+  "productName": "DocNest",
   "author": {
     "name": "Pippo",
     "url": "https://github.com/zeng1144318071-bot"
@@ -33,7 +33,7 @@
   "build": {
     "afterPack": "scripts/after-pack.cjs",
     "appId": "local.projectvault.preview",
-    "productName": "项目资料库",
+    "productName": "DocNest",
     "asar": true,
     "directories": {
       "output": "release",
@@ -57,7 +57,7 @@
         }
       ],
       "icon": "build/icon.ico",
-      "artifactName": "ProjectVault-Setup-${version}-${arch}.${ext}"
+      "artifactName": "DocNest-Setup-${version}-${arch}.${ext}"
     },
     "nsis": {
       "oneClick": false,
@@ -66,13 +66,14 @@
       "allowToChangeInstallationDirectory": true,
       "createDesktopShortcut": true,
       "createStartMenuShortcut": true,
-      "shortcutName": "项目资料库",
+      "shortcutName": "DocNest",
       "deleteAppDataOnUninstall": false,
       "installerLanguages": [
         "zh_CN",
         "en_US"
       ],
-      "language": "2052"
+      "language": "2052",
+      "include": "build/installer.nsh"
     },
     "publish": {
       "provider": "github",
