@@ -21,7 +21,7 @@ export_root.mkdir()
 executable = app_root / 'release' / 'win-unpacked' / 'DocNest.exe'
 assert executable.exists(), 'Build the Windows app first.'
 update_config = json.loads(subprocess.check_output(['node', '-e', "console.log(JSON.stringify(require('js-yaml').load(require('fs').readFileSync(process.argv[1],'utf8'))))", str(executable.parent / 'resources' / 'app-update.yml')], cwd=app_root, text=True, creationflags=subprocess.CREATE_NO_WINDOW))
-assert update_config == {'provider': 'github', 'owner': 'zeng1144318071-bot', 'repo': 'project-vault-desktop', 'updaterCacheDirName': 'project-vault-preview-updater'}
+assert update_config == {'provider': 'github', 'owner': 'zeng1144318071-bot', 'repo': 'DocNest', 'updaterCacheDirName': 'project-vault-preview-updater'}
 standard = json.loads((app_root / 'examples/project-vault-example.json').read_text(encoding='utf-8'))
 assert (app_root / 'release/project-vault-example.json').read_bytes() == (app_root / 'examples/project-vault-example.json').read_bytes()
 with zipfile.ZipFile(app_root / 'release' / f'DocNest-Examples-{app_version}.zip') as example_zip:
@@ -198,6 +198,10 @@ try:
     select_record(renderer, 'environment')
     assert renderer.evaluate("Array.from(document.querySelectorAll('#pv-content .pv-env-group')).map(node => node.dataset.envSection)") == ['', 'app', 'database', 'redis', 'storage']
     capture(main, 'readme-env.png')
+    select_record(renderer, 'settings')
+    capture(main, 'readme-json.png')
+    select_record(renderer, 'accounts')
+    capture(main, 'readme-txt.png')
     select_record(renderer, 'guide')
     main.evaluate("""(() => {
       const ipc = globalThis.__pvElectron.ipcMain;

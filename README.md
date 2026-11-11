@@ -2,15 +2,15 @@
 
 <img src="build/icon.svg" width="96" height="96" alt="DocNest 文档归巢 Logo">
 
-[![Windows checks](https://github.com/zeng1144318071-bot/project-vault-desktop/actions/workflows/ci.yml/badge.svg)](https://github.com/zeng1144318071-bot/project-vault-desktop/actions/workflows/ci.yml)
-[![Release](https://img.shields.io/github/v/release/zeng1144318071-bot/project-vault-desktop)](https://github.com/zeng1144318071-bot/project-vault-desktop/releases/latest)
+[![Windows checks](https://github.com/zeng1144318071-bot/DocNest/actions/workflows/ci.yml/badge.svg)](https://github.com/zeng1144318071-bot/DocNest/actions/workflows/ci.yml)
+[![Release](https://img.shields.io/github/v/release/zeng1144318071-bot/DocNest)](https://github.com/zeng1144318071-bot/DocNest/releases/latest)
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 
 把散落在记事本里的项目说明、服务器资料和环境配置整理到一个本地桌面工具中。
 
 DocNest 支持 **TXT、ENV、JSON、Markdown** 四种格式的导入、预览、编辑与转换，按项目集中查看，并使用 Windows 当前账户的 DPAPI 加密保存。应用每 5 分钟检查 GitHub 新版本，安装包下载完成后提示安装。
 
-**[下载 Windows 安装包](https://github.com/zeng1144318071-bot/project-vault-desktop/releases/latest) · [标准示例](examples/README.md) · [版本记录](CHANGELOG.md) · [参与开发](CONTRIBUTING.md)**
+**[下载 Windows 安装包](https://github.com/zeng1144318071-bot/DocNest/releases/latest) · [标准示例](examples/README.md) · [版本记录](CHANGELOG.md) · [参与开发](CONTRIBUTING.md)**
 
 ![DocNest：项目与 Markdown 预览，全部为虚构演示资料](docs/images/overview.png)
 
@@ -30,9 +30,27 @@ DocNest 支持 **TXT、ENV、JSON、Markdown** 四种格式的导入、预览、
 
 统一的小图标工具栏配有悬停和键盘提示。项目切换、重命名、删除确认、更新确认使用应用内组件。复制成功提示显示 3 秒圆环倒计时，并支持系统减少动画设置。支持浅色与深色主题。
 
+## 软件截图
+
+以下截图均来自当前版本的标准虚构示例，敏感字段保持隐藏。
+
+### ENV 分组预览
+
+左侧显示完整配置，右侧按 `[section]` 分组。
+
+![DocNest ENV 完整内容与分组预览](docs/images/env.png)
+
+### JSON 源码预览
+
+![DocNest JSON 格式化源码预览](docs/images/json.png)
+
+### TXT 文本预览
+
+![DocNest TXT 文本预览](docs/images/txt.png)
+
 ## 安装与使用
 
-适用于 **Windows 10 / 11 x64**。从 [Releases](https://github.com/zeng1144318071-bot/project-vault-desktop/releases/latest) 下载 `DocNest-Setup-版本号-x64.exe`，安装向导提供目录输入框和“浏览”按钮，可选择自定义安装目录；从应用内更新时也显示该页面，并默认带出原安装位置。选择的是最终安装目录，例如 `D:\Apps\DocNest`。程序自带运行环境，无需安装 Node.js。安装程序创建桌面和开始菜单快捷方式；旧版可直接覆盖升级，卸载时保留用户资料。
+适用于 **Windows 10 / 11 x64**。从 [Releases](https://github.com/zeng1144318071-bot/DocNest/releases/latest) 下载 `DocNest-Setup-版本号-x64.exe`，安装向导提供目录输入框和“浏览”按钮，可选择自定义安装目录；从应用内更新时也显示该页面，并默认带出原安装位置。选择的是最终安装目录，例如 `D:\Apps\DocNest`。程序自带运行环境，无需安装 Node.js。安装程序创建桌面和开始菜单快捷方式；旧版可直接覆盖升级，卸载时保留用户资料。
 
 首次启动显示一个“标准示例项目”，包含 TXT、ENV、JSON、MD 四份完整资料。示例使用虚构账号、`example.com` 域名和文档专用 IP，可自由修改或删除。已有资料升级后保留原样，可点击左侧“项目”标题旁的书本图标导入独立示例；内容完整的示例已存在时直接打开，已修改的示例保留并另建带编号的项目。按钮悬停或键盘聚焦时会显示名称。
 

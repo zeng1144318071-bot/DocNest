@@ -1,6 +1,6 @@
 {
   "name": "project-vault-preview",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "description": "DocNest 本地项目资料库：TXT / ENV / JSON / Markdown 导入、预览、转换与加密保存",
   "productName": "DocNest",
   "author": {
@@ -78,16 +78,16 @@
     "publish": {
       "provider": "github",
       "owner": "zeng1144318071-bot",
-      "repo": "project-vault-desktop"
+      "repo": "DocNest"
     }
   },
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/zeng1144318071-bot/project-vault-desktop.git"
+    "url": "https://github.com/zeng1144318071-bot/DocNest.git"
   },
-  "homepage": "https://github.com/zeng1144318071-bot/project-vault-desktop#readme",
+  "homepage": "https://github.com/zeng1144318071-bot/DocNest#readme",
   "bugs": {
-    "url": "https://github.com/zeng1144318071-bot/project-vault-desktop/issues"
+    "url": "https://github.com/zeng1144318071-bot/DocNest/issues"
   }
 }
