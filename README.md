@@ -1,5 +1,7 @@
 # DocNest
 
+<img src="build/icon.svg" width="96" height="96" alt="DocNest 文档归巢 Logo">
+
 [![Windows checks](https://github.com/zeng1144318071-bot/project-vault-desktop/actions/workflows/ci.yml/badge.svg)](https://github.com/zeng1144318071-bot/project-vault-desktop/actions/workflows/ci.yml)
 [![Release](https://img.shields.io/github/v/release/zeng1144318071-bot/project-vault-desktop)](https://github.com/zeng1144318071-bot/project-vault-desktop/releases/latest)
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
