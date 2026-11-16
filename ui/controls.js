@@ -1,5 +1,5 @@
 import { createRenameDialog } from './rename.js';
-import { hideMenus, showMenu } from './popovers.js';
+import { dismissMenuOnOutsideClick, hideMenus, showMenu } from './popovers.js';
 
 export function createControls(root, { projectCount, refreshIcons }) {
   const byId = id => root.querySelector('#' + id);
@@ -153,6 +153,7 @@ export function createControls(root, { projectCount, refreshIcons }) {
     }
     const list = node('div', 'pv-select-list'); list.id = select.id + '-listbox'; list.setAttribute('role', 'listbox'); list.setAttribute('aria-label', labelName); popup.append(list); root.append(popup);
     const control = { select, trigger, text, popup, list, search, isProject, labelName }; selectors.push(control);
+    dismissMenuOnOutsideClick(popup, trigger, () => closeSelector());
     trigger.addEventListener('click', () => openSelector === control ? closeSelector(true) : open(control));
     trigger.addEventListener('keydown', event => {
       if (event.key === 'ArrowDown' || event.key === 'ArrowUp') { event.preventDefault(); open(control, true); }

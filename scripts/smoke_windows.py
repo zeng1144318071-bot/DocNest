@@ -18,7 +18,7 @@ check_root.mkdir(parents=True)
 data_root = check_root / 'user-data'
 export_root = check_root / 'exports'
 export_root.mkdir()
-executable = app_root / 'release' / 'win-unpacked' / 'DocNest.exe'
+executable = Path(os.environ.get('PROJECT_VAULT_TEST_EXECUTABLE', app_root / 'release' / 'win-unpacked' / 'DocNest.exe'))
 assert executable.exists(), 'Build the Windows app first.'
 update_config = json.loads(subprocess.check_output(['node', '-e', "console.log(JSON.stringify(require('js-yaml').load(require('fs').readFileSync(process.argv[1],'utf8'))))", str(executable.parent / 'resources' / 'app-update.yml')], cwd=app_root, text=True, creationflags=subprocess.CREATE_NO_WINDOW))
 assert update_config == {'provider': 'github', 'owner': 'zeng1144318071-bot', 'repo': 'DocNest', 'updaterCacheDirName': 'project-vault-preview-updater'}
@@ -184,7 +184,8 @@ try:
     assert renderer.evaluate("document.activeElement.dataset.theme") == 'system'
     assert renderer.evaluate("(() => { const r=document.getElementById('pv-theme-menu').getBoundingClientRect(); return r.left>=0 && r.right<=innerWidth && r.top>=0 && r.bottom<=innerHeight; })()")
     click_outside_overlay(renderer, 'pv-theme-menu')
-    assert renderer.evaluate("document.getElementById('pv-theme-menu').matches(':popover-open')")
+    renderer.wait("!document.getElementById('pv-theme-menu').matches(':popover-open') && document.getElementById('pv-theme-trigger').getAttribute('aria-expanded') === 'false'")
+    click(renderer, 'pv-theme-trigger')
     renderer.evaluate("document.getElementById('pv-search').focus(); true")
     press_key(renderer, 'Escape', 'Escape', 27)
     renderer.wait("!document.getElementById('pv-theme-menu').matches(':popover-open') && document.activeElement.id === 'pv-theme-trigger'")
@@ -379,7 +380,8 @@ try:
     assert renderer.evaluate("document.querySelectorAll('#pv-project-listbox [role=option]').length") == 2
     assert renderer.evaluate("document.querySelector('#pv-project-listbox [aria-selected=true]').dataset.value") == 'example'
     click_outside_overlay(renderer, 'pv-project-popup')
-    assert renderer.evaluate("document.getElementById('pv-project-popup').matches(':popover-open')")
+    renderer.wait("!document.getElementById('pv-project-popup').matches(':popover-open') && document.getElementById('pv-project-trigger').getAttribute('aria-expanded') === 'false'")
+    click(renderer, 'pv-project-trigger')
     renderer.evaluate("document.querySelector('#pv-project-popup input').focus(); true")
     capture(main, 'custom-project-selector.png')
     main.evaluate("globalThis.__pvPreviousTheme = globalThis.__pvElectron.nativeTheme.themeSource; globalThis.__pvElectron.nativeTheme.themeSource = 'dark'; true")
@@ -505,7 +507,8 @@ try:
     click(renderer, 'pv-export-format-trigger')
     renderer.wait("document.getElementById('pv-export-format-popup').matches(':popover-open')")
     click_outside_overlay(renderer, 'pv-export-format-popup')
-    assert renderer.evaluate("document.getElementById('pv-export-format-popup').matches(':popover-open')")
+    renderer.wait("!document.getElementById('pv-export-format-popup').matches(':popover-open') && document.getElementById('pv-export-format-trigger').getAttribute('aria-expanded') === 'false'")
+    click(renderer, 'pv-export-format-trigger')
     renderer.evaluate("document.querySelector('#pv-export-format-listbox [data-value=json]').click(); true")
     assert renderer.evaluate("document.getElementById('pv-export-format').value") == 'json'
     click(renderer, 'pv-export-copy')
@@ -972,7 +975,7 @@ summary['checks'] += ['update checking icon animates continuously and timeout re
 summary['checks'] += ['edit, record/project deletion, file/bundle import and export success toasts', 'canceled export has no success toast and failed deletion shows error', 'official version title and single standard first-run project', 'standard example opens without duplicate writes', 'example import preserves existing projects and documents', 'unsaved drafts block example import', 'standard bundle imports all four exact files', 'repeated example import preserves encrypted bytes', 'modified examples remain intact when a fresh numbered example is imported']
 summary['checks'] += ['repository link opens metadata URL through validated IPC', 'full repository URL appears in a bounded tooltip', 'keyboard Tab and Enter activate the repository link']
 summary['checks'] += ['scrolled title and all document actions share a compact sticky header', 'long TXT keeps controls visible without narrow-window overflow', 'scroll hysteresis prevents short-distance header oscillation', 'long editor keeps save button visible at pane bottom']
-summary['checks'] += ['outside clicks preserve rename, delete, update, project, export and theme popups']
+summary['checks'] += ['outside clicks preserve modal dialogs and dismiss project, export and theme menus']
 summary['checks'] += ['light, dark and system theme menu with keyboard controls', 'theme choice changes the actual color scheme and persists across restart']
 summary['checks'] += ['Windows close keeps the window alive and hides it', 'second launch restores the hidden window', 'app quit still exits cleanly']
 summary['checks'] += ['published example ZIP restores every exact original file', 'standalone standard JSON native-file import preserves filenames, formats and content', 'existing and imported example data remain unchanged on restart']

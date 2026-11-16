@@ -8,3 +8,11 @@ export function showMenu(root, menu) {
   hideMenus(root, menu);
   menu.showPopover();
 }
+
+export function dismissMenuOnOutsideClick(menu, trigger, close) {
+  document.addEventListener('pointerdown', event => {
+    if (!menu.matches(':popover-open')) return;
+    const path = event.composedPath();
+    if (!path.includes(menu) && !path.includes(trigger)) close();
+  });
+}

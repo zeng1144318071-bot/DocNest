@@ -1,4 +1,4 @@
-import { showMenu } from './popovers.js';
+import { dismissMenuOnOutsideClick, showMenu } from './popovers.js';
 
 export function createThemeControls(root, { api, ui, refreshIcons }) {
   const trigger = root.querySelector('#pv-theme-trigger');
@@ -49,6 +49,7 @@ export function createThemeControls(root, { api, ui, refreshIcons }) {
     option.addEventListener('click', () => { void choose(option.dataset.theme); });
   }
   trigger.addEventListener('click', () => menu.matches(':popover-open') ? close(true) : open());
+  dismissMenuOnOutsideClick(menu, trigger, () => close());
   trigger.addEventListener('keydown', event => {
     if (event.key !== 'ArrowDown') return;
     event.preventDefault();
